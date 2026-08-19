@@ -1,2 +1,18 @@
+Entorno virtual
 venv/
-*.pyc
+.venv/
+
+Python
+pycache/
+*.py[cod]
+*$py.class
+
+Variables de entorno
+.env
+
+Django
+db.sqlite3
+
+IDE
+.vscode/
+.idea/
