@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Interfaz de Prueba</title>
+    <style>
+        .contenedor-principal {
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+            margin: 0 auto;
+            border: 2px solid black;
+            padding: 20px;
+        }
+        .cuadrado-izquierdo, .cuadrado-derecho {
+            width: 45%;
+            border: 1px solid black;
+            padding: 20px;
+        }
+        .campo {
+            margin-bottom: 15px;
+        }
+        .campo input, .campo select {
+            width: 100%;
+            padding: 5px;
+        }
+        .btn-agregar {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        .lista-ventanas div {
+            border: 1px solid black;
+            padding: 5px;
+            margin-bottom: 5px;
+        }
+        .botones-inferiores {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .botones-inferiores button, .botones-inferiores a {
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            color: black;
+            border: 2px solid black;
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="contenedor-principal">
+        <!-- CUADRADO IZQUIERDO (Ingreso de datos) -->
+        <div class="cuadrado-izquierdo">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="campo" style="display: flex; align-items: center; gap: 5px;">
+                    <label style="min-width: 60px;">Alto:</label>
+                    <input type="number" name="alto" step="0.1" min="0" required style="flex-grow: 1;">
+                    <span>cm</span>
+                </div>
+                <div class="campo" style="display: flex; align-items: center; gap: 5px;">
+                    <label style="min-width: 60px;">Ancho:</label>
+                    <input type="number" name="ancho" step="0.1" min="0" required style="flex-grow: 1;">
+                    <span>cm</span>
+                </div>
+                <div class="campo">
+                    <label>Tipo ventana:</label>
+                    <select name="tipo">
+                        <option value="Corrediza">Corrediza</option>
+                        <option value="Abatir">Abatir</option>
+                        <option value="Fija">Fija</option>
+                    </select>
+                </div>
+                <div class="campo">
+                    <label>Color:</label>
+                    <select name="color">
+                        <option value="Blanco">Blanco</option>
+                        <option value="Negro">Negro</option>
+                        <option value="Madera">Madera</option>
+                    </select>
+                </div>
+                
+                <!-- Botón de acción: Agregar -->
+                <button type="submit" name="accion" value="agregar" class="btn-agregar">agregar</button>
+            </form>
+        </div>
+
+        <!-- CUADRADO DERECHO (Lista y botones) -->
+        <div class="cuadrado-derecho">
+            <h3 style="text-align: center;">ventanas ingresadas</h3>
+            
+            <div class="lista-ventanas">
+                {% for ventana in ventanas %}
+                    <div>{{ ventana.tipo }} - {{ ventana.color }} ({{ ventana.alto }}x{{ ventana.ancho }})</div>
+                {% empty %}
+                    <div>No hay ventanas ingresadas.</div>
+                {% endfor %}
+            </div>
+
+            <div class="botones-inferiores">
+                <!-- Botón de acción: Limpiar -->
+                <form method="POST" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" name="accion" value="limpiar">limpiar</button>
+                </form>
+                
+                <!-- Botón de acción: Exportar (Enlace a la otra página) -->
+                <a href="{% url 'pagina_exportar' %}">exportar</a>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
