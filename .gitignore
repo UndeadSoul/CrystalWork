@@ -1,18 +1,18 @@
-Entorno virtual
+#Entorno virtual
 venv/
 .venv/
 
-Python
+#Python
 pycache/
 *.py[cod]
 *$py.class
 
-Variables de entorno
+#Variables de entorno
 .env
 
-Django
+#Django
 db.sqlite3
 
-IDE
+#IDE
 .vscode/
 .idea/
