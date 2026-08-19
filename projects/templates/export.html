@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Exportar Ventanas</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .ventana-item { border-bottom: 1px solid #ccc; padding: 10px 0; }
+        .botones-accion { margin-top: 20px; }
+        .botones-accion button { padding: 10px 20px; cursor: pointer; }
+        
+        /* Ocultar los botones al momento de imprimir/generar PDF */
+        @media print {
+            .no-imprimir { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Reporte de Ventanas Ingresadas</h2>
+
+    <div>
+        {% for ventana in ventanas %}
+            <div class="ventana-item">
+                <strong>Tipo:</strong> {{ ventana.tipo }} | 
+                <strong>Color:</strong> {{ ventana.color }} | 
+                <strong>Medidas:</strong> {{ ventana.alto }} alto x {{ ventana.ancho }} ancho
+            </div>
+        {% empty %}
+            <p>No hay datos para exportar.</p>
+        {% endfor %}
+    </div>
+
+    <div class="botones-accion no-imprimir">
+        <!-- El cuadro de diálogo del navegador permite tanto Imprimir como "Guardar como PDF" -->
+        <button onclick="window.print()">Imprimir / Exportar a PDF</button>
+        <br><br>
+        <a href="{% url 'interfaz_prueba' %}">Volver a la interfaz</a>
+    </div>
+
+</body>
+</html>
