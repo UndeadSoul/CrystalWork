@@ -3,119 +3,288 @@
 <head>
     <meta charset="UTF-8">
     <title>Interfaz de Prueba</title>
+
     <style>
-        .contenedor-principal {
-            display: flex;
-            justify-content: space-between;
-            width: 80%;
-            margin: 0 auto;
-            border: 2px solid black;
-            padding: 20px;
+        body{
+            font-family: Arial, sans-serif;
+            padding:25px;
+            color:#222;
+            background:#fff;
         }
-        .cuadrado-izquierdo, .cuadrado-derecho {
-            width: 45%;
-            border: 1px solid black;
-            padding: 20px;
+
+        h2{
+            margin-top:8px;
+            margin-bottom:8px;
         }
-        .campo {
-            margin-bottom: 15px;
+
+        h3{
+            margin-top:6px;
+            margin-bottom:15px;
         }
-        .campo input, .campo select {
-            width: 100%;
-            padding: 5px;
+
+        /* Contenedor principal */
+        .contenedor-principal{
+            display:flex;
+            justify-content:space-between;
+            gap:25px;
+            width:80%;
+            margin:0 auto;
+            border:1px solid #999;
+            padding:25px;
+            box-sizing:border-box;
         }
-        .btn-agregar {
-            width: 100%;
-            padding: 10px;
-            border-radius: 10px;
-            margin-top: 20px;
-            cursor: pointer;
+
+        /* Paneles */
+        .cuadrado-izquierdo,
+        .cuadrado-derecho{
+            width:50%;
+            border:1px solid #999;
+            padding:20px;
+            box-sizing:border-box;
+            background:#fff;
         }
-        .lista-ventanas div {
-            border: 1px solid black;
-            padding: 5px;
-            margin-bottom: 5px;
+
+        /* Campos */
+        .campo{
+            margin-bottom:15px;
         }
-        .botones-inferiores {
-            margin-top: 20px;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
+
+        .campo label{
+            display:block;
+            margin-bottom:6px;
+            font-weight:bold;
         }
-        .botones-inferiores button, .botones-inferiores a {
-            padding: 10px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            text-decoration: none;
-            color: black;
-            border: 2px solid black;
-            background-color: #f0f0f0;
+
+        .campo input,
+        .campo select{
+            width:100%;
+            padding:8px;
+            border:1px solid #999;
+            box-sizing:border-box;
+            font-family:Arial, sans-serif;
+            font-size:14px;
+        }
+
+        /* Campos de medidas */
+        .campo-medida{
+            display:flex;
+            align-items:center;
+            gap:6px;
+            margin-bottom:15px;
+        }
+
+        .campo-medida label{
+            min-width:60px;
+            font-weight:bold;
+        }
+
+        .campo-medida input{
+            flex-grow:1;
+            width:auto;
+            padding:8px;
+            border:1px solid #999;
+            box-sizing:border-box;
+        }
+
+        .campo-medida span{
+            min-width:25px;
+        }
+
+        /* Botón agregar */
+        .btn-agregar{
+            width:100%;
+            padding:10px;
+            margin-top:10px;
+            border:1px solid #999;
+            background:#ececec;
+            color:#222;
+            cursor:pointer;
+            font-size:15px;
+        }
+
+        .btn-agregar:hover{
+            background:#ddd;
+        }
+
+        /* Lista de ventanas */
+        .lista-ventanas{
+            width:100%;
+        }
+
+        .lista-ventanas div{
+            border:1px solid #999;
+            padding:8px;
+            margin-bottom:5px;
+            background:#f5f5f5;
+        }
+
+        /* Botones inferiores */
+        .botones-inferiores{
+            margin-top:20px;
+            display:flex;
+            justify-content:center;
+            gap:10px;
+        }
+
+        .botones-inferiores button,
+        .botones-inferiores a{
+            padding:10px 25px;
+            font-size:15px;
+            border:1px solid #999;
+            cursor:pointer;
+            text-decoration:none;
+            color:#222;
+            background:#ececec;
+            box-sizing:border-box;
+        }
+
+        .botones-inferiores button:hover,
+        .botones-inferiores a:hover{
+            background:#ddd;
+        }
+
+        /* Responsive */
+        @media(max-width:800px){
+
+            .contenedor-principal{
+                width:95%;
+                flex-direction:column;
+            }
+
+            .cuadrado-izquierdo,
+            .cuadrado-derecho{
+                width:100%;
+            }
+
         }
     </style>
 </head>
-<body>
 
+<body>
     <div class="contenedor-principal">
-        <!-- CUADRADO IZQUIERDO (Ingreso de datos) -->
+        <!-- PANEL IZQUIERDO: INGRESO DE DATOS -->
         <div class="cuadrado-izquierdo">
+            <h3>Ingreso de ventana</h3>
             <form method="POST">
                 {% csrf_token %}
-                <div class="campo" style="display: flex; align-items: center; gap: 5px;">
-                    <label style="min-width: 60px;">Alto:</label>
-                    <input type="number" name="alto" step="0.1" min="0" required style="flex-grow: 1;">
+                <!-- Alto -->
+                <div class="campo-medida">
+                    <label>Alto:</label>
+                    <input
+                        type="number"
+                        name="alto"
+                        step="0.1"
+                        min="0"
+                        required
+                    >
                     <span>cm</span>
                 </div>
-                <div class="campo" style="display: flex; align-items: center; gap: 5px;">
-                    <label style="min-width: 60px;">Ancho:</label>
-                    <input type="number" name="ancho" step="0.1" min="0" required style="flex-grow: 1;">
+                <!-- Ancho -->
+                <div class="campo-medida">
+                    <label>Ancho:</label>
+                    <input
+                        type="number"
+                        name="ancho"
+                        step="0.1"
+                        min="0"
+                        required
+                    >
                     <span>cm</span>
                 </div>
+                <!-- Tipo de ventana -->
                 <div class="campo">
                     <label>Tipo ventana:</label>
                     <select name="tipo">
-                        <option value="Corrediza">Corrediza</option>
-                        <option value="Abatir">Abatir</option>
-                        <option value="Fija">Fija</option>
+                        <option value="Linea20">
+                            Corredera Línea 20
+                        </option>
+                        <option value="Linea25">
+                            Corredera Línea 25
+                        </option>
+                        <option value="Linea42f">
+                            Fija Línea 42
+                        </option>
+                        <option value="Linea42p">
+                            Proyección Línea 42
+                        </option>
                     </select>
                 </div>
+                <!-- Color -->
                 <div class="campo">
                     <label>Color:</label>
                     <select name="color">
-                        <option value="Blanco">Blanco</option>
-                        <option value="Negro">Negro</option>
-                        <option value="Madera">Madera</option>
+                        <option value="Mate">
+                            Mate (Aluminio)
+                        </option>
+                        <option value="Bronce">
+                            Bronce (Negro)
+                        </option>
+                        <option value="Madera">
+                            Madera
+                        </option>
+                        <option value="Titaneo">
+                            Titáneo
+                        </option>
+                        <option value="Blanco">
+                            Blanco
+                        </option>
                     </select>
                 </div>
-                
-                <!-- Botón de acción: Agregar -->
-                <button type="submit" name="accion" value="agregar" class="btn-agregar">agregar</button>
+                <!-- Agregar -->
+                <button
+                    type="submit"
+                    name="accion"
+                    value="agregar"
+                    class="btn-agregar"
+                >
+                    Agregar ventana
+                </button>
             </form>
         </div>
 
-        <!-- CUADRADO DERECHO (Lista y botones) -->
+        <!-- PANEL DERECHO: VENTANAS INGRESADAS -->
         <div class="cuadrado-derecho">
-            <h3 style="text-align: center;">ventanas ingresadas</h3>
-            
+            <h3 style="text-align:center;">
+                Ventanas ingresadas
+            </h3>
             <div class="lista-ventanas">
                 {% for ventana in ventanas %}
-                    <div>{{ ventana.tipo }} - {{ ventana.color }} ({{ ventana.alto }}x{{ ventana.ancho }})</div>
+                    <div>
+                        <strong>Ventana {{ forloop.counter }}</strong>
+                        <br>
+                        {{ ventana.tipo }}
+                        -
+                        {{ ventana.color }}
+                        <br>
+                        {{ ventana.alto }} cm
+                        ×
+                        {{ ventana.ancho }} cm
+                    </div>
                 {% empty %}
-                    <div>No hay ventanas ingresadas.</div>
+                    <div>
+                        No hay ventanas ingresadas.
+                    </div>
                 {% endfor %}
             </div>
-
+            <!-- BOTONES -->
             <div class="botones-inferiores">
-                <!-- Botón de acción: Limpiar -->
-                <form method="POST" style="margin: 0;">
+                <!-- Limpiar -->
+                <form method="POST" style="margin:0;">
                     {% csrf_token %}
-                    <button type="submit" name="accion" value="limpiar">limpiar</button>
+                    <button
+                        type="submit"
+                        name="accion"
+                        value="limpiar"
+                    >
+                        Limpiar
+                    </button>
                 </form>
-                
-                <!-- Botón de acción: Exportar (Enlace a la otra página) -->
-                <a href="{% url 'pagina_exportar' %}">exportar</a>
+                <!-- Exportar -->
+                <a href="{% url 'pagina_exportar' %}">
+                    Exportar
+                </a>
             </div>
         </div>
     </div>
-
 </body>
 </html>

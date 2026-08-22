@@ -4,39 +4,166 @@
     <meta charset="UTF-8">
     <title>Exportar Ventanas</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .ventana-item { border-bottom: 1px solid #ccc; padding: 10px 0; }
-        .botones-accion { margin-top: 20px; }
-        .botones-accion button { padding: 10px 20px; cursor: pointer; }
-        
-        /* Ocultar los botones al momento de imprimir/generar PDF */
-        @media print {
-            .no-imprimir { display: none; }
+        body{
+            font-family: Arial, sans-serif;
+            padding:25px;
+            color:#222;
         }
+
+        h2{
+            margin-bottom:8px;
+            margin-top:8px;
+        }
+
+        h3{
+            margin-top:6px;
+            margin-bottom:10px
+        }
+
+        p{
+            margin-top:6px;
+            margin-bottom:6px
+        }
+
+        .upper-part{
+            margin-bottom:25px;
+        }
+
+        .botones-accion{
+            display:flex;
+            gap:10px;
+            align-items:center;
+            margin-top:15px;
+        }
+
+        .botones-accion button{
+            padding:10px 25px;
+            cursor:pointer;
+            font-size:15px;
+        }
+
+        .botones-accion a{
+            padding:10px 25px;
+            font-size:15px;
+            text-decoration:none;
+            color:#222;
+            border:1px solid #999;
+            background:#f5f5f5;
+        }
+
+        .ventana{
+            margin-bottom:25px;
+            page-break-inside: avoid;
+        }
+
+        .info{
+            background:#f5f5f5;
+            padding:5px;
+            border-left:5px solid #999;
+            margin-bottom:1px;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+        }
+
+        th, td{
+            border:1px solid #999;
+            padding:6px;
+            text-align:center;
+        }
+
+        th{
+            background:#ececec;
+        }
+
+        td:first-child{
+            text-align:left;
+        }
+
+        input[type="checkbox"]{
+            width:18px;
+            height:18px;
+        }
+
+        @media print{
+
+            .no-imprimir{
+                display:none;
+            }
+
+            body{
+                padding:5mm;
+            }
+
+        }
+
     </style>
 </head>
 <body>
+<div class="upper-part">
 
-    <h2>Reporte de Ventanas Ingresadas</h2>
-
-    <div>
-        {% for ventana in ventanas %}
-            <div class="ventana-item">
-                <strong>Tipo:</strong> {{ ventana.tipo }} | 
-                <strong>Color:</strong> {{ ventana.color }} | 
-                <strong>Medidas:</strong> {{ ventana.alto }} alto x {{ ventana.ancho }} ancho
-            </div>
-        {% empty %}
-            <p>No hay datos para exportar.</p>
-        {% endfor %}
-    </div>
+    <h2>Reporte de Fabricación de Ventanas</h2>
 
     <div class="botones-accion no-imprimir">
-        <!-- El cuadro de diálogo del navegador permite tanto Imprimir como "Guardar como PDF" -->
-        <button onclick="window.print()">Imprimir / Exportar a PDF</button>
-        <br><br>
-        <a href="{% url 'interfaz_prueba' %}">Volver a la interfaz</a>
+
+        <button onclick="window.print()">
+            Imprimir / Exportar a PDF
+        </button>
+
+        <a href="{% url 'interfaz_prueba' %}">
+            Volver a la interfaz
+        </a>
+
     </div>
+
+</div>
+
+{% for ventana in ventanas %}
+<div class="ventana">
+    <div class="info">
+        <p>
+            <strong>Ventana {{ forloop.counter }}</strong>
+            <strong>Tipo:</strong> {{ ventana.tipo }} |
+            <strong>Color:</strong> {{ ventana.color }} |
+            <strong>Alto:</strong> {{ ventana.alto }} m |
+            <strong>Ancho:</strong> {{ ventana.ancho }} m
+        </p>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Perfil</th>
+            <th>Largo</th>
+            <th>Cantidad</th>
+            <th>Listo</th>
+        </tr>
+
+        </thead>
+        <tbody>
+        {% for profile in ventana.perfiles %}
+        <tr>
+            <td>{{ profile.name }} {{ventana.tipo}} {{ventana.color}}</td>
+            <td>{{ profile.length }}m</td>
+            <td>{{ profile.cant }}</td>
+            <td>
+                <input type="checkbox">
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">
+                No hay perfiles calculados para esta ventana.
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% empty %}
+<p>No hay ventanas para exportar.</p>
+{% endfor %}
 
 </body>
 </html>

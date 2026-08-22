@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from .windowstypes import calc_windtype_profiles
 
 def interfaz_prueba(request):
     if 'ventanas' not in request.session:
@@ -13,6 +14,7 @@ def interfaz_prueba(request):
                 'ancho': request.POST.get('ancho'),
                 'tipo': request.POST.get('tipo'),
                 'color': request.POST.get('color'),
+                'perfiles': calc_windtype_profiles(request.POST.get('tipo'),request.POST.get('ancho'),request.POST.get('alto'))
             }
             request.session['ventanas'].append(nueva_ventana)
             request.session.modified = True
@@ -28,5 +30,4 @@ def interfaz_prueba(request):
 
 def pagina_exportar(request):
     ventanas = request.session.get('ventanas', [])
-    # SE CAMBIÓ 'exportar.html' POR 'export.html'
     return render(request, 'export.html', {'ventanas': ventanas})
