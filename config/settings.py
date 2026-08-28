@@ -26,7 +26,8 @@ SECRET_KEY = 'django-insecure-4wpg5g8@g356b-=w*q37h$%hw8-hlj0z)2mc0)=mlq=wldj0-^
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "crystal-work-jj25.vercel.app",
+    "crystal-work-jj25.vercel.app"
+    "crystal-work-jj25-6a045zp1b-undeadsouls-projects.vercel.app",
 ]
 
 
