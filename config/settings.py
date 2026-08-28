@@ -26,15 +26,14 @@ SECRET_KEY = 'django-insecure-4wpg5g8@g356b-=w*q37h$%hw8-hlj0z)2mc0)=mlq=wldj0-^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = os.environ.get(    
-    "crystal-work.vercel.app",
+ALLOWED_HOSTS = os.environ.get( 
     "ALLOWED_HOSTS",
     "localhost,127.0.0.1"
 ).split(",")
 
 CSRF_TRUSTED_ORIGINS = os.environ.get(
     "CSRF_TRUSTED_ORIGINS",
-    ""
+    "HTTP://127.0.0.1"
 ).split(",")
 # Application definition
 
