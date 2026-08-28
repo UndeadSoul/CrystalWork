@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,12 +26,16 @@ SECRET_KEY = 'django-insecure-4wpg5g8@g356b-=w*q37h$%hw8-hlj0z)2mc0)=mlq=wldj0-^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    "crystal-work-jj25.vercel.app"
-    "crystal-work-jj25-6a045zp1b-undeadsouls-projects.vercel.app",
-]
+ALLOWED_HOSTS = os.environ.get(    
+    "crystal-work.vercel.app",
+    "ALLOWED_HOSTS",
+    "localhost,127.0.0.1"
+).split(",")
 
-
+CSRF_TRUSTED_ORIGINS = os.environ.get(
+    "CSRF_TRUSTED_ORIGINS",
+    ""
+).split(",")
 # Application definition
 
 INSTALLED_APPS = [
