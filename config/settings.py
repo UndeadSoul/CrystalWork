@@ -25,7 +25,9 @@ SECRET_KEY = 'django-insecure-4wpg5g8@g356b-=w*q37h$%hw8-hlj0z)2mc0)=mlq=wldj0-^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "crystal-work-jj25.vercel.app",
+]
 
 
 # Application definition
