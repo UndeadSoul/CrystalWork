@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'quotes',
     'users',
     'windows',
+    'core',
 ]
 
 MIDDLEWARE = [
