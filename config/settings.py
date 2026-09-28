@@ -123,16 +123,11 @@ INSTALLED_APPS = [
     "simple_history",
 
     # Custom
-    "alerts",
-    "analytics",
-    "clients",
-    "employees",
-    "materials",
-    "projects",
-    "quotes",
-    "users",
-    "windows",
-    "core",
+    "alerts",       #Aplicación para alertas y notificaciones
+    "analytics",    #Aplicación para analítica y métricas (BI)
+    "core",         #Aplicación principal, contiene la cotizacion, proyectos, clientes, ventanas, materiales, etc.
+    "projects",     #Aplicación que contiene el modulo temporal de hoja de corte
+    "users",        #Aplicacion para control de usuarios, empresas, empleados y permisos
 ]
 
 
