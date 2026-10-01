@@ -1,6 +1,13 @@
 from django.urls import path
-from . import views
+from rest_framework.routers import DefaultRouter
+
+from .views import ClienteViewSet, CotizacionViewSet, OpcionesCotizacionView
+
+router = DefaultRouter()
+router.register(r"clientes", ClienteViewSet, basename="cliente")
+router.register(r"cotizaciones", CotizacionViewSet, basename="cotizacion")
 
 urlpatterns = [
-    path('', views.home, name='home')
+    path("cotizaciones/opciones/", OpcionesCotizacionView.as_view(), name="cotizacion-opciones"),
+    *router.urls,
 ]
