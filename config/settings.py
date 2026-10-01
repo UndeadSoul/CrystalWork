@@ -3,7 +3,11 @@ Django settings for config project.
 """
 
 from pathlib import Path
+from datetime import timedelta
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 
 
 # ============================================================
@@ -11,6 +15,24 @@ import os
 # ============================================================
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# ============================================================
+# RESTFramework
+# ============================================================
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+}
 
 
 # ============================================================
@@ -46,6 +68,7 @@ VERCEL_PROJECT_PRODUCTION_URL = os.environ.get(
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
+    "*"
 ]
 
 
@@ -128,6 +151,10 @@ INSTALLED_APPS = [
     "core",         #Aplicación principal, contiene la cotizacion, proyectos, clientes, ventanas, materiales, etc.
     "projects",     #Aplicación que contiene el modulo temporal de hoja de corte
     "users",        #Aplicacion para control de usuarios, empresas, empleados y permisos
+
+    "api",
+    "rest_framework",
+    "corsheaders",
 ]
 
 
@@ -143,6 +170,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 
@@ -184,25 +212,35 @@ WSGI_APPLICATION = "config.wsgi.application"
 # DATABASE
 # ============================================================
 
-# La aplicación no necesita una base de datos persistente.
-# SQLite se mantiene solamente como fallback local.
+# Por defecto usamos SQLite (desarrollo). Si se definen las variables
+# POSTGRES_* en el entorno, la aplicacion cambia a PostgreSQL sin tocar
+# codigo. SQLite NO es apto para despliegues serverless (p. ej. Vercel).
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+if os.environ.get("POSTGRES_DB"):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ["POSTGRES_DB"],
+            "USER": os.environ.get("POSTGRES_USER", "postgres"),
+            "PASSWORD": os.environ.get("POSTGRES_PASSWORD", ""),
+            "HOST": os.environ.get("POSTGRES_HOST", "localhost"),
+            "PORT": os.environ.get("POSTGRES_PORT", "5432"),
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 # ============================================================
-# SESSIONS
+# AUTH
 # ============================================================
 
-# Evita que Django necesite SQLite para almacenar las sesiones.
-# Las sesiones se almacenan en cookies firmadas.
-
-SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
+AUTH_USER_MODEL = "users.Usuario"
 
 
 # ============================================================
@@ -266,3 +304,10 @@ MAILERS = {
         "BACKEND": "django.core.mail.backends.console.EmailBackend",
     },
 }
+
+# ============================================================
+# CORS
+# ============================================================
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
