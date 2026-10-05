@@ -1,6 +1,20 @@
 from rest_framework import serializers
 
-from .models import Cliente, Cotizacion, VentanaCotizada
+from users.models import Empresa
+
+from .models import (
+    Cliente,
+    Cotizacion,
+    Insumo,
+    PerfilIndividual,
+    PerfilSerie,
+    PlanchaVidrio,
+    PrecioPerfilIndividual,
+    PrecioSerie,
+    SerieAluminio,
+    VentanaCotizada,
+)
+from .pricing import recalcular_cotizacion
 
 
 class ClienteSerializer(serializers.ModelSerializer):
@@ -17,7 +31,6 @@ class ClienteSerializer(serializers.ModelSerializer):
             "actualizado_en",
         ]
         read_only_fields = ["id", "creado_en", "actualizado_en"]
-        # La empresa se asigna en el servidor segun el usuario autenticado.
 
 
 class VentanaCotizadaSerializer(serializers.ModelSerializer):
@@ -38,9 +51,18 @@ class VentanaCotizadaSerializer(serializers.ModelSerializer):
             "ancho_cm",
             "alto_cm",
             "cantidad",
+            "costo_unitario",
+            "precio_unitario",
             "subtotal",
+            "precio_calculado",
         ]
-        read_only_fields = ["id", "subtotal"]
+        read_only_fields = [
+            "id",
+            "costo_unitario",
+            "precio_unitario",
+            "subtotal",
+            "precio_calculado",
+        ]
 
 
 class CotizacionSerializer(serializers.ModelSerializer):
@@ -69,6 +91,7 @@ class CotizacionSerializer(serializers.ModelSerializer):
             "distancia_transporte_km",
             "comentarios",
             "monto_agregado",
+            "costo_transporte",
             "total",
             "fecha_ingreso",
             "fecha_resolucion",
@@ -80,6 +103,7 @@ class CotizacionSerializer(serializers.ModelSerializer):
             "id",
             "empleado",
             "estado",
+            "costo_transporte",
             "total",
             "fecha_ingreso",
             "fecha_resolucion",
@@ -111,8 +135,7 @@ class CotizacionSerializer(serializers.ModelSerializer):
         VentanaCotizada.objects.bulk_create(
             [VentanaCotizada(cotizacion=cotizacion, **v) for v in ventanas_data]
         )
-        cotizacion.recalcular_total()
-        cotizacion.save(update_fields=["total"])
+        recalcular_cotizacion(cotizacion)
         return cotizacion
 
 
@@ -136,3 +159,89 @@ class CotizacionListSerializer(serializers.ModelSerializer):
             "n_ventanas",
             "fecha_ingreso",
         ]
+
+
+# ============================================================
+# Catalogo de precios
+# ============================================================
+
+
+class PerfilSerieSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PerfilSerie
+        fields = ["id", "serie", "nombre", "peso_kg", "largo_tira_m"]
+
+
+class PrecioSerieSerializer(serializers.ModelSerializer):
+    color_display = serializers.CharField(source="get_color_display", read_only=True)
+
+    class Meta:
+        model = PrecioSerie
+        fields = ["id", "serie", "color", "color_display", "precio"]
+
+
+class SerieAluminioSerializer(serializers.ModelSerializer):
+    perfiles = PerfilSerieSerializer(many=True, read_only=True)
+    precios = PrecioSerieSerializer(many=True, read_only=True)
+    peso_serie = serializers.DecimalField(
+        max_digits=10, decimal_places=3, read_only=True
+    )
+
+    class Meta:
+        model = SerieAluminio
+        fields = ["id", "codigo", "nombre", "peso_serie", "perfiles", "precios"]
+
+
+class PrecioPerfilIndividualSerializer(serializers.ModelSerializer):
+    color_display = serializers.CharField(source="get_color_display", read_only=True)
+
+    class Meta:
+        model = PrecioPerfilIndividual
+        fields = ["id", "perfil", "color", "color_display", "precio"]
+
+
+class PerfilIndividualSerializer(serializers.ModelSerializer):
+    precios = PrecioPerfilIndividualSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = PerfilIndividual
+        fields = ["id", "codigo", "nombre", "largo_tira_m", "precios"]
+
+
+class PlanchaVidrioSerializer(serializers.ModelSerializer):
+    tipo_vidrio_display = serializers.CharField(
+        source="get_tipo_vidrio_display", read_only=True
+    )
+
+    class Meta:
+        model = PlanchaVidrio
+        fields = [
+            "id",
+            "tipo_vidrio",
+            "tipo_vidrio_display",
+            "ancho_plancha_m",
+            "alto_plancha_m",
+            "precio",
+        ]
+
+
+class InsumoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Insumo
+        fields = [
+            "id",
+            "codigo",
+            "nombre",
+            "unidad",
+            "precio_paquete",
+            "cantidad_paquete",
+        ]
+
+
+class EmpresaConfigSerializer(serializers.ModelSerializer):
+    """Configuracion de precios de la empresa (margen y transporte)."""
+
+    class Meta:
+        model = Empresa
+        fields = ["id", "nombre", "margen_ganancia_pct", "precio_transporte_km"]
+        read_only_fields = ["id", "nombre"]

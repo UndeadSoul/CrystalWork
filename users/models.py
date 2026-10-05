@@ -16,6 +16,20 @@ class Empresa(models.Model):
     activa = models.BooleanField(default=True)
     creada_en = models.DateTimeField(auto_now_add=True)
 
+    # Configuracion de precios
+    margen_ganancia_pct = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        help_text="Porcentaje de ganancia que se suma al costo. Ej: 30 = 30%.",
+    )
+    precio_transporte_km = models.DecimalField(
+        max_digits=10,
+        decimal_places=0,
+        default=0,
+        help_text="Precio por kilometro de transporte (CLP).",
+    )
+
     class Meta:
         verbose_name = "Empresa"
         verbose_name_plural = "Empresas"

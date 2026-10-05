@@ -14,4 +14,5 @@ urlpatterns = [
     # Dominio
     path("api/", include("api.urls")),
     path("api/", include("core.urls")),
+    path("api/", include("projects.urls")),
 ]

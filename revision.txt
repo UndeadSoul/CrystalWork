@@ -1,0 +1,14 @@
+Observaciones:
+-	(Inicio) Los botones de la navegación no sirven al estar en el apartado de “ingresar”
+-	(proyectos) eliminar botón ver y que el elemento completo de la lista redirija al proyecto al hacer click
+-	(proyectos) en la hoja de corte deben diferenciarse los perfiles a cortar también por color.
+-	(proyectos) revisar unidades de medida
+-	(proyectos) agregar estado de pago aparte de estado del proyecto
+-	(cotización) el campo distancia acepta caracteres como e
+-	(cotización) la distancia no puede quedar nulo
+-	(cotización) para ir más de acuerdo con lo planteado en el proyecto, ubicar las ventanas agregadas en la parte derecha. Distribuyendo el espacio entre el resto de la información y las ventanas agregadas
+-	(clientes) quitar la opción de eliminar cliente
+-	(precios) quitar la opción de agregar perfiles en una serie. Quitar la opción de eliminar los colores
+-	Que el orden de los perfiles en la lista sea: Riel superior – Riel inferior – Jamba – cabezal – Zócalo – batiente – Traslapo (proyecto, hoja de corte, precios)
+-	Ventanas de dimensiones con sentido (no permitir dimensiones imposibles)
+-	Verificar que pasa cuando se abre más de una pestaña
