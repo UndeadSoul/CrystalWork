@@ -14,6 +14,11 @@ class Proyecto(models.Model):
         TERMINADO = "TERMINADO", "Terminado"
         ENTREGADO = "ENTREGADO", "Entregado"
 
+    class EstadoPago(models.TextChoices):
+        PENDIENTE = "PENDIENTE", "Pendiente"
+        ABONADO = "ABONADO", "Abonado"
+        PAGADO = "PAGADO", "Pagado"
+
     cotizacion = models.OneToOneField(
         Cotizacion, on_delete=models.PROTECT, related_name="proyecto"
     )
@@ -28,6 +33,11 @@ class Proyecto(models.Model):
         max_length=20,
         choices=EstadoProduccion.choices,
         default=EstadoProduccion.POR_INICIAR,
+    )
+    estado_pago = models.CharField(
+        max_length=20,
+        choices=EstadoPago.choices,
+        default=EstadoPago.PENDIENTE,
     )
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 

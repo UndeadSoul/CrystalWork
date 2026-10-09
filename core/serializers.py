@@ -2,14 +2,14 @@ from rest_framework import serializers
 
 from users.models import Empresa
 
+from .rut import rut_valido
+
 from .models import (
     Cliente,
     Cotizacion,
     Insumo,
-    PerfilIndividual,
     PerfilSerie,
     PlanchaVidrio,
-    PrecioPerfilIndividual,
     PrecioSerie,
     SerieAluminio,
     VentanaCotizada,
@@ -31,6 +31,11 @@ class ClienteSerializer(serializers.ModelSerializer):
             "actualizado_en",
         ]
         read_only_fields = ["id", "creado_en", "actualizado_en"]
+
+    def validate_rut(self, valor):
+        if valor and not rut_valido(valor):
+            raise serializers.ValidationError("El RUT no es válido.")
+        return valor
 
 
 class VentanaCotizadaSerializer(serializers.ModelSerializer):
@@ -63,6 +68,19 @@ class VentanaCotizadaSerializer(serializers.ModelSerializer):
             "subtotal",
             "precio_calculado",
         ]
+
+    def _validar_dimension(self, valor, campo):
+        if valor is None or not (30 <= valor <= 250):
+            raise serializers.ValidationError(
+                f"El {campo} debe estar entre 30 y 250 cm."
+            )
+        return valor
+
+    def validate_ancho_cm(self, valor):
+        return self._validar_dimension(valor, "ancho")
+
+    def validate_alto_cm(self, valor):
+        return self._validar_dimension(valor, "alto")
 
 
 class CotizacionSerializer(serializers.ModelSerializer):
@@ -138,6 +156,19 @@ class CotizacionSerializer(serializers.ModelSerializer):
         recalcular_cotizacion(cotizacion)
         return cotizacion
 
+    def update(self, instance, validated_data):
+        ventanas_data = validated_data.pop("ventanas", None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        if ventanas_data is not None:
+            instance.ventanas.all().delete()
+            VentanaCotizada.objects.bulk_create(
+                [VentanaCotizada(cotizacion=instance, **v) for v in ventanas_data]
+            )
+        recalcular_cotizacion(instance)
+        return instance
+
 
 class CotizacionListSerializer(serializers.ModelSerializer):
     """Serializer liviano para el listado."""
@@ -169,7 +200,8 @@ class CotizacionListSerializer(serializers.ModelSerializer):
 class PerfilSerieSerializer(serializers.ModelSerializer):
     class Meta:
         model = PerfilSerie
-        fields = ["id", "serie", "nombre", "peso_kg", "largo_tira_m"]
+        fields = ["id", "serie", "nombre", "peso_kg", "largo_tira_m", "en_paquete"]
+        read_only_fields = ["en_paquete"]
 
 
 class PrecioSerieSerializer(serializers.ModelSerializer):
@@ -183,29 +215,11 @@ class PrecioSerieSerializer(serializers.ModelSerializer):
 class SerieAluminioSerializer(serializers.ModelSerializer):
     perfiles = PerfilSerieSerializer(many=True, read_only=True)
     precios = PrecioSerieSerializer(many=True, read_only=True)
-    peso_serie = serializers.DecimalField(
-        max_digits=10, decimal_places=3, read_only=True
-    )
 
     class Meta:
         model = SerieAluminio
-        fields = ["id", "codigo", "nombre", "peso_serie", "perfiles", "precios"]
-
-
-class PrecioPerfilIndividualSerializer(serializers.ModelSerializer):
-    color_display = serializers.CharField(source="get_color_display", read_only=True)
-
-    class Meta:
-        model = PrecioPerfilIndividual
-        fields = ["id", "perfil", "color", "color_display", "precio"]
-
-
-class PerfilIndividualSerializer(serializers.ModelSerializer):
-    precios = PrecioPerfilIndividualSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = PerfilIndividual
-        fields = ["id", "codigo", "nombre", "largo_tira_m", "precios"]
+        fields = ["id", "codigo", "nombre", "peso_total_kg", "perfiles", "precios"]
+        read_only_fields = ["id", "codigo", "nombre"]
 
 
 class PlanchaVidrioSerializer(serializers.ModelSerializer):

@@ -11,10 +11,8 @@ from .models import (
     Cliente,
     Cotizacion,
     Insumo,
-    PerfilIndividual,
     PerfilSerie,
     PlanchaVidrio,
-    PrecioPerfilIndividual,
     PrecioSerie,
     SerieAluminio,
     TipoVentana,
@@ -28,10 +26,8 @@ from .serializers import (
     CotizacionSerializer,
     EmpresaConfigSerializer,
     InsumoSerializer,
-    PerfilIndividualSerializer,
     PerfilSerieSerializer,
     PlanchaVidrioSerializer,
-    PrecioPerfilIndividualSerializer,
     PrecioSerieSerializer,
     SerieAluminioSerializer,
 )
@@ -96,6 +92,14 @@ class CotizacionViewSet(EmpresaScopedViewSet):
         if self.action == "list":
             return CotizacionListSerializer
         return CotizacionSerializer
+
+    def update(self, request, *args, **kwargs):
+        cotizacion = self.get_object()
+        if cotizacion.estado != Cotizacion.Estado.PENDIENTE:
+            raise ValidationError(
+                "Solo se pueden editar cotizaciones pendientes (antes de aprobar)."
+            )
+        return super().update(request, *args, **kwargs)
 
     @action(detail=True, methods=["post"])
     def recalcular(self, request, pk=None):
@@ -162,20 +166,6 @@ class SerieAluminioViewSet(EmpresaScopedViewSet):
         )
 
 
-class PerfilIndividualViewSet(EmpresaScopedViewSet):
-    serializer_class = PerfilIndividualSerializer
-    permission_classes = [IsJefeOrAdmin]
-
-    def get_queryset(self):
-        asegurar_catalogo(self.request.user.empresa)
-        return self.filtrar_por_empresa(
-            PerfilIndividual.objects.prefetch_related("precios")
-        )
-
-    def perform_create(self, serializer):
-        serializer.save(empresa=self._empresa_requerida())
-
-
 class PlanchaVidrioViewSet(EmpresaScopedViewSet):
     serializer_class = PlanchaVidrioSerializer
     permission_classes = [IsJefeOrAdmin]
@@ -224,12 +214,6 @@ class PrecioSerieViewSet(_HijoDeEmpresaViewSet):
     serializer_class = PrecioSerieSerializer
     model = PrecioSerie
     padre_lookup = "serie__empresa"
-
-
-class PrecioPerfilIndividualViewSet(_HijoDeEmpresaViewSet):
-    serializer_class = PrecioPerfilIndividualSerializer
-    model = PrecioPerfilIndividual
-    padre_lookup = "perfil__empresa"
 
 
 class EmpresaConfigView(generics.RetrieveUpdateAPIView):

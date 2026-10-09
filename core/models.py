@@ -11,9 +11,10 @@ from users.models import Empresa
 
 class TipoVentana(models.TextChoices):
     # El value coincide con la clave de projects/windowstypes.py
-    CORREDERA_L20 = "Linea20", "Corredera (Linea 20)"
-    CORREDERA_L25S = "Linea25simple", "Corredera (Linea 25 simple)"
-    CORREDERA_LLUVIA_L25 = "Linea25lluvia", "Corredera lluvia (Linea 25)"
+    CORREDERA_L20_SIMPLE = "Linea20simple", "Corredera Linea 20 Riel Simple"
+    CORREDERA_L20_LLUVIA = "Linea20lluvia", "Corredera Linea 20 Riel Lluvia"
+    CORREDERA_L25_SIMPLE = "Linea25simple", "Corredera Linea 25 Riel Simple"
+    CORREDERA_L25_LLUVIA = "Linea25lluvia", "Corredera Linea 25 Riel Lluvia"
     FIJO_L42 = "Linea42f", "Fijo (Linea 42)"
     PROYECCION_L42 = "Linea42p", "Proyeccion (Linea 42)"
 
@@ -49,11 +50,11 @@ class Cliente(models.Model):
         on_delete=models.PROTECT,
         related_name="clientes",
     )
-    nombre = models.CharField(max_length=150)
+    nombre = models.CharField(max_length=100)
     rut = models.CharField(max_length=20, blank=True)
     telefono = models.CharField(max_length=30, blank=True)
-    email = models.EmailField(blank=True)
-    direccion = models.CharField(max_length=255, blank=True)
+    email = models.EmailField(max_length=100, blank=True)
+    direccion = models.CharField(max_length=100, blank=True)
     creado_en = models.DateTimeField(auto_now_add=True)
     actualizado_en = models.DateTimeField(auto_now=True)
 
@@ -82,6 +83,13 @@ class SerieAluminio(models.Model):
         max_length=10, help_text="Identificador corto, p. ej. L20 o L25."
     )
     nombre = models.CharField(max_length=100)
+    peso_total_kg = models.DecimalField(
+        max_digits=8,
+        decimal_places=3,
+        default=0,
+        help_text="Peso del paquete (serie completa) en kg. Se usa como "
+        "denominador en el calculo de precio de cada perfil.",
+    )
 
     class Meta:
         verbose_name = "Serie de aluminio"
@@ -94,8 +102,8 @@ class SerieAluminio(models.Model):
 
     @property
     def peso_serie(self):
-        """Peso total de la serie = suma del peso de sus perfiles (kg)."""
-        return sum((p.peso_kg for p in self.perfiles.all()), 0)
+        """Peso del paquete (editable)."""
+        return self.peso_total_kg
 
 
 class PerfilSerie(models.Model):
@@ -108,14 +116,22 @@ class PerfilSerie(models.Model):
     nombre = models.CharField(
         max_length=60, help_text="Debe coincidir con la hoja de corte (ej: Jamba)."
     )
+    orden = models.PositiveSmallIntegerField(
+        default=0, help_text="Orden de aparicion en listas y hoja de corte."
+    )
     peso_kg = models.DecimalField(max_digits=7, decimal_places=3)
     largo_tira_m = models.DecimalField(max_digits=6, decimal_places=3)
+    en_paquete = models.BooleanField(
+        default=True,
+        help_text="Si viene en el paquete (cuenta para el peso de la serie). "
+        "El riel inferior simple va fuera del paquete.",
+    )
 
     class Meta:
         verbose_name = "Perfil de serie"
         verbose_name_plural = "Perfiles de serie"
         unique_together = ("serie", "nombre")
-        ordering = ["serie", "nombre"]
+        ordering = ["serie", "orden", "nombre"]
 
     def __str__(self):
         return f"{self.serie.codigo} · {self.nombre}"
@@ -139,47 +155,6 @@ class PrecioSerie(models.Model):
 
     def __str__(self):
         return f"{self.serie.codigo} {self.get_color_display()}: {self.precio}"
-
-
-class PerfilIndividual(models.Model):
-    """Perfil que se cotiza con precio propio, fuera del paquete.
-    Caso: el riel inferior de la Linea 25 simple."""
-
-    empresa = models.ForeignKey(
-        Empresa, on_delete=models.CASCADE, related_name="perfiles_individuales"
-    )
-    codigo = models.CharField(max_length=30, help_text="Ej: RIEL_INF_SIMPLE.")
-    nombre = models.CharField(max_length=80)
-    largo_tira_m = models.DecimalField(max_digits=6, decimal_places=3)
-
-    class Meta:
-        verbose_name = "Perfil individual"
-        verbose_name_plural = "Perfiles individuales"
-        unique_together = ("empresa", "codigo")
-        ordering = ["codigo"]
-
-    def __str__(self):
-        return self.nombre
-
-
-class PrecioPerfilIndividual(models.Model):
-    """Precio de la tira de un perfil individual, por color."""
-
-    perfil = models.ForeignKey(
-        PerfilIndividual, on_delete=models.CASCADE, related_name="precios"
-    )
-    color = models.CharField(max_length=20, choices=ColorAluminio.choices)
-    precio = models.DecimalField(
-        max_digits=12, decimal_places=0, help_text="Precio de la tira (CLP)."
-    )
-
-    class Meta:
-        verbose_name = "Precio de perfil individual"
-        verbose_name_plural = "Precios de perfil individual"
-        unique_together = ("perfil", "color")
-
-    def __str__(self):
-        return f"{self.perfil.codigo} {self.get_color_display()}: {self.precio}"
 
 
 class PlanchaVidrio(models.Model):
@@ -268,7 +243,7 @@ class Cotizacion(models.Model):
         max_length=20, choices=Estado.choices, default=Estado.PENDIENTE
     )
 
-    direccion_entrega = models.CharField(max_length=255, blank=True)
+    direccion_entrega = models.CharField(max_length=100, blank=True)
     requiere_transporte = models.BooleanField(default=False)
     distancia_transporte_km = models.DecimalField(
         max_digits=8, decimal_places=2, null=True, blank=True

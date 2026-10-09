@@ -4,10 +4,8 @@ from .models import (
     Cliente,
     Cotizacion,
     Insumo,
-    PerfilIndividual,
     PerfilSerie,
     PlanchaVidrio,
-    PrecioPerfilIndividual,
     PrecioSerie,
     SerieAluminio,
     VentanaCotizada,
@@ -57,18 +55,6 @@ class SerieAluminioAdmin(admin.ModelAdmin):
     list_display = ("codigo", "nombre", "empresa")
     list_filter = ("empresa",)
     inlines = [PerfilSerieInline, PrecioSerieInline]
-
-
-class PrecioPerfilIndividualInline(admin.TabularInline):
-    model = PrecioPerfilIndividual
-    extra = 0
-
-
-@admin.register(PerfilIndividual)
-class PerfilIndividualAdmin(admin.ModelAdmin):
-    list_display = ("codigo", "nombre", "empresa", "largo_tira_m")
-    list_filter = ("empresa",)
-    inlines = [PrecioPerfilIndividualInline]
 
 
 @admin.register(PlanchaVidrio)

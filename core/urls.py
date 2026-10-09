@@ -7,10 +7,8 @@ from .views import (
     EmpresaConfigView,
     InsumoViewSet,
     OpcionesCotizacionView,
-    PerfilIndividualViewSet,
     PerfilSerieViewSet,
     PlanchaVidrioViewSet,
-    PrecioPerfilIndividualViewSet,
     PrecioSerieViewSet,
     SerieAluminioViewSet,
 )
@@ -23,16 +21,6 @@ router.register(r"cotizaciones", CotizacionViewSet, basename="cotizacion")
 router.register(r"catalogo/series", SerieAluminioViewSet, basename="serie")
 router.register(r"catalogo/perfiles-serie", PerfilSerieViewSet, basename="perfil-serie")
 router.register(r"catalogo/precios-serie", PrecioSerieViewSet, basename="precio-serie")
-router.register(
-    r"catalogo/perfiles-individuales",
-    PerfilIndividualViewSet,
-    basename="perfil-individual",
-)
-router.register(
-    r"catalogo/precios-perfil-individual",
-    PrecioPerfilIndividualViewSet,
-    basename="precio-perfil-individual",
-)
 router.register(r"catalogo/planchas", PlanchaVidrioViewSet, basename="plancha")
 router.register(r"catalogo/insumos", InsumoViewSet, basename="insumo")
 

@@ -10,6 +10,9 @@ class ProyectoListSerializer(serializers.ModelSerializer):
     estado_display = serializers.CharField(
         source="get_estado_produccion_display", read_only=True
     )
+    estado_pago_display = serializers.CharField(
+        source="get_estado_pago_display", read_only=True
+    )
     total = serializers.DecimalField(
         source="cotizacion.total", max_digits=12, decimal_places=0, read_only=True
     )
@@ -25,6 +28,8 @@ class ProyectoListSerializer(serializers.ModelSerializer):
             "cliente_nombre",
             "estado_produccion",
             "estado_display",
+            "estado_pago",
+            "estado_pago_display",
             "total",
             "n_ventanas",
             "fecha_creacion",
@@ -38,6 +43,9 @@ class ProyectoSerializer(serializers.ModelSerializer):
     estado_display = serializers.CharField(
         source="get_estado_produccion_display", read_only=True
     )
+    estado_pago_display = serializers.CharField(
+        source="get_estado_pago_display", read_only=True
+    )
     cotizacion = CotizacionSerializer(read_only=True)
 
     class Meta:
@@ -48,6 +56,8 @@ class ProyectoSerializer(serializers.ModelSerializer):
             "cliente_nombre",
             "estado_produccion",
             "estado_display",
+            "estado_pago",
+            "estado_pago_display",
             "fecha_creacion",
             "cotizacion",
         ]

@@ -22,14 +22,20 @@ class PricingError(Exception):
 
 # Tipo de ventana -> serie de aluminio que usa.
 SERIE_POR_TIPO = {
-    "Linea20": "L20",
+    "Linea20simple": "L20",
+    "Linea20lluvia": "L20",
     "Linea25simple": "L25",
     "Linea25lluvia": "L25",
 }
 
-# Perfiles que se reemplazan por un perfil individual segun el tipo de ventana.
+# Segun el tipo de ventana, que perfil de la serie usar en lugar del que entrega
+# la hoja de corte. Los tipos "riel simple" usan el perfil "Riel inferior
+# simple"; los "riel lluvia" usan el "Riel Inferior" estandar. El riel inferior
+# simple es un perfil de la serie (fuera de paquete) que se cotiza con el mismo
+# calculo por peso.
 OVERRIDES_PERFIL = {
-    "Linea25simple": {"Riel Inferior": "RIEL_INF_SIMPLE"},
+    "Linea20simple": {"Riel Inferior": "Riel inferior simple"},
+    "Linea25simple": {"Riel Inferior": "Riel inferior simple"},
 }
 
 MERMA_VIDRIO = Decimal("1.20")
@@ -77,37 +83,25 @@ def _costo_aluminio(empresa, tipo, color, ancho_cm, alto_cm, faltantes):
     precio_serie = ps.precio if ps else None
     if ps is None:
         faltantes.append(f"Precio de Serie {serie_codigo} en color {color}")
+    if not peso_serie:
+        faltantes.append(f"Pesos de perfiles de Serie {serie_codigo}")
 
     perfiles_map = {p.nombre: p for p in serie.perfiles.all()}
     overrides = OVERRIDES_PERFIL.get(tipo, {})
 
     total = Decimal(0)
     for corte in calc_windtype_profiles(tipo, ancho_cm, alto_cm):
-        nombre = corte["name"]
+        nombre = overrides.get(corte["name"], corte["name"])
         largo_usado = Decimal(str(corte["length"])) * corte["cant"]
 
-        if nombre in overrides:
-            cod = overrides[nombre]
-            pi = m.PerfilIndividual.objects.filter(empresa=empresa, codigo=cod).first()
-            if not pi:
-                faltantes.append(f"Perfil individual {cod}")
-                continue
-            pip = m.PrecioPerfilIndividual.objects.filter(
-                perfil=pi, color=color
-            ).first()
-            if not pip:
-                faltantes.append(f"Precio de {cod} en color {color}")
-                continue
-            total += pip.precio * (largo_usado / pi.largo_tira_m)
-        else:
-            perfil = perfiles_map.get(nombre)
-            if not perfil:
-                faltantes.append(f"Perfil '{nombre}' en Serie {serie_codigo}")
-                continue
-            if precio_serie is None or not peso_serie:
-                continue
-            precio_perfil = precio_serie * (perfil.peso_kg / peso_serie)
-            total += precio_perfil * (largo_usado / perfil.largo_tira_m)
+        perfil = perfiles_map.get(nombre)
+        if not perfil:
+            faltantes.append(f"Perfil '{nombre}' en Serie {serie_codigo}")
+            continue
+        if precio_serie is None or not peso_serie or not perfil.largo_tira_m:
+            continue
+        precio_perfil = precio_serie * (perfil.peso_kg / peso_serie)
+        total += precio_perfil * (largo_usado / perfil.largo_tira_m)
 
     return total
 
