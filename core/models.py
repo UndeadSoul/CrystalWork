@@ -297,8 +297,8 @@ class VentanaCotizada(models.Model):
     tipo = models.CharField(max_length=20, choices=TipoVentana.choices)
     color = models.CharField(max_length=20, choices=ColorAluminio.choices)
     vidrio = models.CharField(max_length=20, choices=TipoVidrio.choices)
-    ancho_cm = models.DecimalField(max_digits=7, decimal_places=1)
-    alto_cm = models.DecimalField(max_digits=7, decimal_places=1)
+    ancho_mm = models.PositiveIntegerField(help_text="Ancho de la ventana en mm.")
+    alto_mm = models.PositiveIntegerField(help_text="Alto de la ventana en mm.")
     cantidad = models.PositiveIntegerField(default=1)
 
     # Calculados por el motor de precios (CLP, sin decimales).
@@ -314,4 +314,55 @@ class VentanaCotizada(models.Model):
         verbose_name_plural = "Ventanas cotizadas"
 
     def __str__(self):
-        return f"{self.get_tipo_display()} {self.ancho_cm}x{self.alto_cm}"
+        return f"{self.get_tipo_display()} {self.ancho_mm}x{self.alto_mm}mm"
+
+
+# ============================================================
+# Control de cambios (auditoria)
+# ============================================================
+
+
+class CambioRegistro(models.Model):
+    """Registro de cambios para auditoria. Cubre cambios de estado en
+    proyectos (fabricacion/pago) y cambios de valores en el catalogo de
+    precios. Guarda valor anterior/nuevo, quien y cuando."""
+
+    class Categoria(models.TextChoices):
+        PROYECTO = "PROYECTO", "Proyecto"
+        PRECIO = "PRECIO", "Precio"
+
+    empresa = models.ForeignKey(
+        Empresa, on_delete=models.CASCADE, related_name="cambios"
+    )
+    categoria = models.CharField(max_length=20, choices=Categoria.choices)
+    # objeto_tipo/objeto_id permiten filtrar sin dependencia circular con projects.
+    objeto_tipo = models.CharField(
+        max_length=30, help_text="Ej: proyecto, serie, perfil, precio-serie, plancha, insumo, config."
+    )
+    objeto_id = models.PositiveIntegerField(null=True, blank=True)
+    objeto_label = models.CharField(max_length=120)
+    campo = models.CharField(max_length=60)
+    valor_anterior = models.CharField(max_length=120, blank=True)
+    valor_nuevo = models.CharField(max_length=120, blank=True)
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="cambios_realizados",
+    )
+    usuario_nombre = models.CharField(
+        max_length=150, blank=True, help_text="Snapshot del usuario por si se elimina."
+    )
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Registro de cambio"
+        verbose_name_plural = "Registros de cambios"
+        ordering = ["-creado_en"]
+        indexes = [
+            models.Index(fields=["empresa", "categoria", "objeto_tipo", "objeto_id"]),
+        ]
+
+    def __str__(self):
+        return f"{self.objeto_label} · {self.campo}: {self.valor_anterior} → {self.valor_nuevo}"

@@ -20,6 +20,17 @@ class PricingError(Exception):
         super().__init__("; ".join(faltantes))
 
 
+# IVA (Chile). El total que maneja el sistema es NETO; el bruto = neto + IVA.
+IVA_PCT = Decimal("19")
+
+
+def desglose_iva(neto):
+    """Devuelve (neto, iva, bruto) en CLP sin decimales a partir del neto."""
+    neto = Decimal(neto or 0)
+    iva = (neto * IVA_PCT / 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+    return int(neto), int(iva), int(neto + iva)
+
+
 # Tipo de ventana -> serie de aluminio que usa.
 SERIE_POR_TIPO = {
     "Linea20simple": "L20",
@@ -65,7 +76,7 @@ def agregados_usados(tipo, ancho_m, alto_m):
     return []
 
 
-def _costo_aluminio(empresa, tipo, color, ancho_cm, alto_cm, faltantes):
+def _costo_aluminio(empresa, tipo, color, ancho_mm, alto_mm, faltantes):
     serie_codigo = SERIE_POR_TIPO.get(tipo)
     if not serie_codigo:
         faltantes.append(f"No hay serie definida para el tipo {tipo}")
@@ -90,7 +101,7 @@ def _costo_aluminio(empresa, tipo, color, ancho_cm, alto_cm, faltantes):
     overrides = OVERRIDES_PERFIL.get(tipo, {})
 
     total = Decimal(0)
-    for corte in calc_windtype_profiles(tipo, ancho_cm, alto_cm):
+    for corte in calc_windtype_profiles(tipo, ancho_mm, alto_mm):
         nombre = overrides.get(corte["name"], corte["name"])
         largo_usado = Decimal(str(corte["length"])) * corte["cant"]
 
@@ -142,13 +153,13 @@ def _costo_agregados(empresa, tipo, ancho_m, alto_m, faltantes):
     return total
 
 
-def calcular_costo_ventana(empresa, tipo, color, vidrio, ancho_cm, alto_cm):
+def calcular_costo_ventana(empresa, tipo, color, vidrio, ancho_mm, alto_mm):
     """Devuelve el desglose de costos. Lanza PricingError si falta algun dato."""
     faltantes = []
-    ancho_m = Decimal(ancho_cm) / 100
-    alto_m = Decimal(alto_cm) / 100
+    ancho_m = Decimal(ancho_mm) / 1000
+    alto_m = Decimal(alto_mm) / 1000
 
-    costo_aluminio = _costo_aluminio(empresa, tipo, color, ancho_cm, alto_cm, faltantes)
+    costo_aluminio = _costo_aluminio(empresa, tipo, color, ancho_mm, alto_mm, faltantes)
     costo_vidrio = _costo_vidrio(empresa, vidrio, ancho_m, alto_m, faltantes)
     costo_agregados = _costo_agregados(empresa, tipo, ancho_m, alto_m, faltantes)
 
@@ -173,8 +184,8 @@ def fijar_precio_ventana(ventana, margen_pct):
             ventana.tipo,
             ventana.color,
             ventana.vidrio,
-            ventana.ancho_cm,
-            ventana.alto_cm,
+            ventana.ancho_mm,
+            ventana.alto_mm,
         )
     except PricingError:
         ventana.costo_unitario = 0

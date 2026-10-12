@@ -22,9 +22,9 @@ _OFFSETS = {
 
 
 def calc_windtype_profiles(windtype, width, height):
-    # conversion de cm a m
-    widthm = round(int(width) / 100, 3)
-    heightm = round(int(height) / 100, 3)
+    # width/height vienen en mm; se convierten a m
+    widthm = round(int(width) / 1000, 3)
+    heightm = round(int(height) / 1000, 3)
 
     offsets = _OFFSETS.get(windtype)
     if not offsets:

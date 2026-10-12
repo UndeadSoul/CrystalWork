@@ -6,8 +6,10 @@ from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .audit import AuditaValoresMixin
 from .catalog import asegurar_catalogo
 from .models import (
+    CambioRegistro,
     Cliente,
     Cotizacion,
     Insumo,
@@ -21,6 +23,7 @@ from .models import (
 )
 from .pricing import SERIE_POR_TIPO, recalcular_cotizacion
 from .serializers import (
+    CambioRegistroSerializer,
     ClienteSerializer,
     CotizacionListSerializer,
     CotizacionSerializer,
@@ -152,12 +155,16 @@ class CotizacionViewSet(EmpresaScopedViewSet):
 # ============================================================
 
 
-class SerieAluminioViewSet(EmpresaScopedViewSet):
+class SerieAluminioViewSet(AuditaValoresMixin, EmpresaScopedViewSet):
     """Series fijas (L20, L25): solo lectura/edicion, sin alta ni baja."""
 
     serializer_class = SerieAluminioSerializer
     permission_classes = [IsJefeOrAdmin]
     http_method_names = ["get", "head", "options", "patch", "put"]
+    campos_auditados = {"peso_total_kg": "Peso total (kg)"}
+
+    def audit_objeto(self, instance):
+        return ("serie", f"Serie {instance.codigo}")
 
     def get_queryset(self):
         asegurar_catalogo(self.request.user.empresa)
@@ -166,9 +173,17 @@ class SerieAluminioViewSet(EmpresaScopedViewSet):
         )
 
 
-class PlanchaVidrioViewSet(EmpresaScopedViewSet):
+class PlanchaVidrioViewSet(AuditaValoresMixin, EmpresaScopedViewSet):
     serializer_class = PlanchaVidrioSerializer
     permission_classes = [IsJefeOrAdmin]
+    campos_auditados = {
+        "ancho_plancha_m": "Ancho (m)",
+        "alto_plancha_m": "Alto (m)",
+        "precio": "Precio",
+    }
+
+    def audit_objeto(self, instance):
+        return ("plancha", f"Plancha {instance.get_tipo_vidrio_display()}")
 
     def get_queryset(self):
         return self.filtrar_por_empresa(PlanchaVidrio.objects.all())
@@ -177,24 +192,34 @@ class PlanchaVidrioViewSet(EmpresaScopedViewSet):
         serializer.save(empresa=self._empresa_requerida())
 
 
-class InsumoViewSet(EmpresaScopedViewSet):
+class InsumoViewSet(AuditaValoresMixin, EmpresaScopedViewSet):
     """Insumos fijos: solo lectura/edicion, sin alta ni baja."""
 
     serializer_class = InsumoSerializer
     permission_classes = [IsJefeOrAdmin]
     http_method_names = ["get", "head", "options", "patch", "put"]
+    campos_auditados = {
+        "precio_paquete": "Precio paquete",
+        "cantidad_paquete": "Cant. paquete",
+    }
+
+    def audit_objeto(self, instance):
+        return ("insumo", instance.nombre)
 
     def get_queryset(self):
         asegurar_catalogo(self.request.user.empresa)
         return self.filtrar_por_empresa(Insumo.objects.all())
 
 
-class _HijoDeEmpresaViewSet(viewsets.ModelViewSet):
+class _HijoDeEmpresaViewSet(AuditaValoresMixin, viewsets.ModelViewSet):
     """Base para modelos cuyo dueno-empresa es a traves de un padre
     (perfiles y precios dependen de su serie/perfil)."""
 
     permission_classes = [IsJefeOrAdmin]
     padre_lookup = None  # p. ej. "serie__empresa"
+
+    def audit_empresa(self, instance):
+        return instance.serie.empresa
 
     def get_queryset(self):
         user = self.request.user
@@ -208,24 +233,61 @@ class PerfilSerieViewSet(_HijoDeEmpresaViewSet):
     serializer_class = PerfilSerieSerializer
     model = PerfilSerie
     padre_lookup = "serie__empresa"
+    campos_auditados = {"peso_kg": "Peso (kg)", "largo_tira_m": "Largo tira (m)"}
+
+    def audit_objeto(self, instance):
+        return ("perfil", f"{instance.serie.codigo} · {instance.nombre}")
 
 
 class PrecioSerieViewSet(_HijoDeEmpresaViewSet):
     serializer_class = PrecioSerieSerializer
     model = PrecioSerie
     padre_lookup = "serie__empresa"
+    campos_auditados = {"precio": "Precio paquete"}
+
+    def audit_objeto(self, instance):
+        return (
+            "precio-serie",
+            f"{instance.serie.codigo} · {instance.get_color_display()}",
+        )
 
 
-class EmpresaConfigView(generics.RetrieveUpdateAPIView):
+class EmpresaConfigView(AuditaValoresMixin, generics.RetrieveUpdateAPIView):
     """Lee/actualiza la configuracion de precios de la empresa del usuario."""
 
     serializer_class = EmpresaConfigSerializer
     permission_classes = [IsJefeOrAdmin]
+    campos_auditados = {
+        "margen_ganancia_pct": "Margen de ganancia (%)",
+        "precio_transporte_km": "Precio transporte por km",
+    }
+
+    def audit_objeto(self, instance):
+        return ("config", "Configuración general")
+
+    def audit_empresa(self, instance):
+        return instance  # el objeto es la propia Empresa
 
     def get_object(self):
         if self.request.user.empresa_id is None:
             raise ValidationError("El usuario no tiene una empresa asignada.")
         return self.request.user.empresa
+
+
+class CambioPrecioListView(generics.ListAPIView):
+    """Historial de cambios de precios de la empresa del usuario."""
+
+    serializer_class = CambioRegistroSerializer
+    permission_classes = [IsJefeOrAdmin]
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = CambioRegistro.objects.filter(
+            categoria=CambioRegistro.Categoria.PRECIO
+        ).select_related("usuario")
+        if not user.is_superuser:
+            qs = qs.filter(empresa=user.empresa)
+        return qs
 
 
 class OpcionesCotizacionView(APIView):

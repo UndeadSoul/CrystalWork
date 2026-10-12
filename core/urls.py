@@ -2,6 +2,7 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
+    CambioPrecioListView,
     ClienteViewSet,
     CotizacionViewSet,
     EmpresaConfigView,
@@ -31,5 +32,10 @@ urlpatterns = [
         name="cotizacion-opciones",
     ),
     path("catalogo/empresa/", EmpresaConfigView.as_view(), name="empresa-config"),
+    path(
+        "catalogo/cambios/",
+        CambioPrecioListView.as_view(),
+        name="catalogo-cambios",
+    ),
     *router.urls,
 ]

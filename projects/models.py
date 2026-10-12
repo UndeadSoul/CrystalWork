@@ -39,6 +39,12 @@ class Proyecto(models.Model):
         choices=EstadoPago.choices,
         default=EstadoPago.PENDIENTE,
     )
+    monto_abonado = models.DecimalField(
+        max_digits=12,
+        decimal_places=0,
+        default=0,
+        help_text="Monto abonado (CLP) cuando el pago es parcial (Abonado).",
+    )
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     class Meta:

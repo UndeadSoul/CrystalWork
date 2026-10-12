@@ -39,7 +39,7 @@ def hoja_de_corte(proyecto):
         codigo = f"{iniciales}{indice}"
         overrides = OVERRIDES_PERFIL.get(ventana.tipo, {})
         perfiles = calc_windtype_profiles(
-            ventana.tipo, ventana.ancho_cm, ventana.alto_cm
+            ventana.tipo, ventana.ancho_mm, ventana.alto_mm
         )
         perfiles.sort(key=lambda p: _orden_perfil(p["name"]))
         for p in perfiles:

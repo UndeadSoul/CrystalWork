@@ -5,6 +5,7 @@ from users.models import Empresa
 from .rut import rut_valido
 
 from .models import (
+    CambioRegistro,
     Cliente,
     Cotizacion,
     Insumo,
@@ -14,7 +15,7 @@ from .models import (
     SerieAluminio,
     VentanaCotizada,
 )
-from .pricing import recalcular_cotizacion
+from .pricing import desglose_iva, recalcular_cotizacion
 
 
 class ClienteSerializer(serializers.ModelSerializer):
@@ -53,8 +54,8 @@ class VentanaCotizadaSerializer(serializers.ModelSerializer):
             "color_display",
             "vidrio",
             "vidrio_display",
-            "ancho_cm",
-            "alto_cm",
+            "ancho_mm",
+            "alto_mm",
             "cantidad",
             "costo_unitario",
             "precio_unitario",
@@ -70,16 +71,16 @@ class VentanaCotizadaSerializer(serializers.ModelSerializer):
         ]
 
     def _validar_dimension(self, valor, campo):
-        if valor is None or not (30 <= valor <= 250):
+        if valor is None or not (300 <= valor <= 2500):
             raise serializers.ValidationError(
-                f"El {campo} debe estar entre 30 y 250 cm."
+                f"El {campo} debe estar entre 300 y 2500 mm."
             )
         return valor
 
-    def validate_ancho_cm(self, valor):
+    def validate_ancho_mm(self, valor):
         return self._validar_dimension(valor, "ancho")
 
-    def validate_alto_cm(self, valor):
+    def validate_alto_mm(self, valor):
         return self._validar_dimension(valor, "alto")
 
 
@@ -93,6 +94,8 @@ class CotizacionSerializer(serializers.ModelSerializer):
     resuelta_por_nombre = serializers.CharField(
         source="resuelta_por.username", read_only=True
     )
+    iva = serializers.SerializerMethodField()
+    total_bruto = serializers.SerializerMethodField()
 
     class Meta:
         model = Cotizacion
@@ -111,12 +114,20 @@ class CotizacionSerializer(serializers.ModelSerializer):
             "monto_agregado",
             "costo_transporte",
             "total",
+            "iva",
+            "total_bruto",
             "fecha_ingreso",
             "fecha_resolucion",
             "resuelta_por",
             "resuelta_por_nombre",
             "ventanas",
         ]
+
+    def get_iva(self, obj):
+        return desglose_iva(obj.total)[1]
+
+    def get_total_bruto(self, obj):
+        return desglose_iva(obj.total)[2]
         read_only_fields = [
             "id",
             "empleado",
@@ -177,6 +188,7 @@ class CotizacionListSerializer(serializers.ModelSerializer):
     empleado_nombre = serializers.CharField(source="empleado.username", read_only=True)
     estado_display = serializers.CharField(source="get_estado_display", read_only=True)
     n_ventanas = serializers.IntegerField(source="ventanas.count", read_only=True)
+    total_bruto = serializers.SerializerMethodField()
 
     class Meta:
         model = Cotizacion
@@ -187,9 +199,13 @@ class CotizacionListSerializer(serializers.ModelSerializer):
             "estado",
             "estado_display",
             "total",
+            "total_bruto",
             "n_ventanas",
             "fecha_ingreso",
         ]
+
+    def get_total_bruto(self, obj):
+        return desglose_iva(obj.total)[2]
 
 
 # ============================================================
@@ -259,3 +275,27 @@ class EmpresaConfigSerializer(serializers.ModelSerializer):
         model = Empresa
         fields = ["id", "nombre", "margen_ganancia_pct", "precio_transporte_km"]
         read_only_fields = ["id", "nombre"]
+
+
+class CambioRegistroSerializer(serializers.ModelSerializer):
+    usuario_display = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CambioRegistro
+        fields = [
+            "id",
+            "categoria",
+            "objeto_tipo",
+            "objeto_id",
+            "objeto_label",
+            "campo",
+            "valor_anterior",
+            "valor_nuevo",
+            "usuario_display",
+            "creado_en",
+        ]
+
+    def get_usuario_display(self, obj):
+        if obj.usuario_id and obj.usuario:
+            return obj.usuario.username
+        return obj.usuario_nombre or "—"
