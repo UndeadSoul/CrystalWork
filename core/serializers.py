@@ -122,12 +122,6 @@ class CotizacionSerializer(serializers.ModelSerializer):
             "resuelta_por_nombre",
             "ventanas",
         ]
-
-    def get_iva(self, obj):
-        return desglose_iva(obj.total)[1]
-
-    def get_total_bruto(self, obj):
-        return desglose_iva(obj.total)[2]
         read_only_fields = [
             "id",
             "empleado",
@@ -138,6 +132,12 @@ class CotizacionSerializer(serializers.ModelSerializer):
             "fecha_resolucion",
             "resuelta_por",
         ]
+
+    def get_iva(self, obj):
+        return desglose_iva(obj.total)[1]
+
+    def get_total_bruto(self, obj):
+        return desglose_iva(obj.total)[2]
 
     def validate_cliente(self, cliente):
         user = self.context["request"].user
