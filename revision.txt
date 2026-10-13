@@ -54,12 +54,6 @@ observaciones 7:
 proyectos: de qué estado a qué estado pasó tanto la fabricación como el pago, quien hizo el cambio y cuando lo hizo (puede ser en un boton que despliegue una ventana con los cambios para no alterar mucho la pagina)
 precios: lo mismo que lo anterior pero en vez de estado, el valor
 
-#Por hacer:
-#- exportar cotizacion
-#- exportar hoja de corte
-#- bi y alertas
-#- loaders
-
 observaciones 8:
 - En el calculo del proyecto diferenciar el valor neto el iva y el bruto e incluirlo tanto en cotización como en proyectos (el monto que se maneja hasta ahora sería el neto)
 - añadir monto para la opción de abonado
@@ -77,3 +71,13 @@ dashboard
 - ventanas más fabricadas no sirve como tabla. propongo otro grafico, en el que se pueda seleccionar tipo y color
 - que ingreso de proyectos tenga filtro de tiempo que cambie la vista del grafico (semana-mes-6meses-año-3años-historico)
 - confirmar que "por cobrar - pagos pendientes" descuente abonos
+
+#Por hacer:
+#- exportar cotizacion
+#- exportar hoja de corte
+#- alertas
+#- loaders
+#- verificar calculo de vidrios
+#- procedimiento de linea 42
+#- gestor de perfiles para el jefe
+
