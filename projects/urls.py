@@ -1,7 +1,8 @@
-from django.urls import path
-from . import views
+from rest_framework.routers import DefaultRouter
 
-urlpatterns = [
-    path('prueba/', views.interfaz_prueba, name='interfaz_prueba'),
-    path('prueba/exportar/', views.pagina_exportar, name='pagina_exportar'),
-]
+from .views import ProyectoViewSet
+
+router = DefaultRouter()
+router.register(r"proyectos", ProyectoViewSet, basename="proyecto")
+
+urlpatterns = router.urls

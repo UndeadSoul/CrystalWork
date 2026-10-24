@@ -1,0 +1,83 @@
+Observaciones:
+-	(Inicio) Los botones de la navegación no sirven al estar en el apartado de “ingresar”
+-	(proyectos) eliminar botón ver. que el elemento completo de la lista redirija al proyecto al hacer click
+-	(proyectos) en la hoja de corte deben diferenciarse los perfiles a cortar también por color.
+-	(proyectos) revisar unidades de medida
+-	(proyectos) agregar estado de pago aparte de estado del proyecto
+-	(cotización) el campo distancia acepta caracteres como "e"
+-	(cotización) la distancia no puede quedar nulo
+-	(cotización) para ir más de acuerdo con lo planteado en el proyecto, ubicar las ventanas agregadas en la parte derecha. Distribuyendo el espacio entre el resto de la información y las ventanas agregadas
+-	(clientes) quitar la opción de eliminar cliente
+-	(precios) quitar la opción de agregar perfiles en una serie. Quitar la opción de eliminar los colores
+-	Que el orden de los perfiles en la lista sea: Riel superior – Riel inferior – Jamba – cabezal – Zócalo – batiente – Traslapo (proyecto, hoja de corte, precios)
+-	Ventanas de dimensiones con sentido (no permitir dimensiones menores a 30cm ni mayores a 2,5m)
+-	Verificar que pasa cuando se abre más de una pestaña
+
+Obsevaciones 2:
+- El mismo cambio que se hizo en proyectos (el de eliminar el boton ver en la lista y que el elemento completo redirija). Aplicar en cotización y clientes
+- limitar los caracteres de dirección y otros elementos en el frontend de ser posible
+- al tener la sesión iniciada, veo que dice arriba a la derecha "el nombre del usuario" y abajo lo mismo. cambiar uno de estos por el nombre de la empresa correspondiente
+- quitar la opción de perfiles individuales y añadir el riel inferior simple a las lineas de corredera (20 y 25) hacer el mismo calculo con el peso del paquete y el peso de la tira. que al momento de elegir la linea se determine solo el usar el correspondiente
+
+observaciones 3:
+- reducir caracteres del nombre, el correo y la dirección a 100, validar el formato del rut (indicar y limitar al momento de ingresar)
+- planteo la diferenciacion de los tipo de ventanas (Corredera linea 20 Riel Simple - Corredera linea 20 Riel lluvia - Corredera linea 25 Riel Simple - Corredera linea 25 Riel lluvia) Y que por detras se use el riel correspondiente
+
+observaciones 4:
+- limpiar la base de datos con los modelos antiguos
+- confirmar la diferencia en las jambas con el riel simple y el de lluvia. (20 simple -0.027m, 20 lluvia -0.035m)
+- poder modificar le peso total de las series completas
+- poder editar los valores del los apartados de precio sin tener que presionar el editar de cada uno (tener como una edición general en cada aparatado "vidrios, insumos, aluminios y general")
+presionar un boton editar que habilite todos los campos y luego un boton guardar. si es que se fuera a abandonar la pagina sin guardar cambios, pedir confirmación
+- limpiar de la bdd los proyectos y clientes antiguos, con sus respectivos elementos asociados
+- opcion de editar las cotizaciones previo a traspaso a proyecto
+- a la hoja de corte de un proyecto cambiar la unidad de medida a mm. asignar un codigo simple a los perfiles para identificarlo ("iniciales cliente"0"numeroventana")
+
+observaciones 5:
+- las jambas no tiene descuento, el largo de estas equivalen a la altura de la ventana
+- el descuento que se le aplica en el alto(traslapo y batiente) es el siguiente:
+L20 simple: batiente y traslapo -0.027m
+L20 lluvia: batiente y traslapo -0.035m
+L25 simple: batiente y traslapo -0.035m
+L25 lluvia: batiente y traslapo -0.045m
+
+observaciones 6:
+Responsividad y diseño
+- Transformar la barra de navegacion en un desplegable lateral para display de dispositivos moviles
+- poder desplazar las tablas horizontalmente en dispositivos moviles para visualizar todos los datos (hojas de corte, proyectos, clientes, ventanas)
+- en cotización idealmente ancho y alto estén uno al lado del otro (aprovechar de cambiar el ingreso a mm.)
+- (cotizacion) una vez ingresada una ventana cambian las proporciones de la lista de la ventana y demás (evitar tambien desbordamiento y compresión)
+
+observaciones 7:
+- dentro de los proyectos mostrar el nombre del cliente, numero de contacto y dirección del proyecto en una tarjeta
+- antes de continuar con la fase 5 quiero considerar implementar un control de cambios en los siguientes apartados:
+proyectos: de qué estado a qué estado pasó tanto la fabricación como el pago, quien hizo el cambio y cuando lo hizo (puede ser en un boton que despliegue una ventana con los cambios para no alterar mucho la pagina)
+precios: lo mismo que lo anterior pero en vez de estado, el valor
+
+observaciones 8:
+- En el calculo del proyecto diferenciar el valor neto el iva y el bruto e incluirlo tanto en cotización como en proyectos (el monto que se maneja hasta ahora sería el neto)
+- añadir monto para la opción de abonado
+- cotizaciones pendientes redirija con el filtro aplicado
+- por cobrar redirija a los proyectos con estado de pago pendientes
+- eliminar el boton editar en la lista de clientes
+- en un perfil de clientes, en la tarjeta de datos tener la suma total de los proyectos a su nombre en la empresa
+
+observaciones 9:
+- que monto abonado esté sujeto a control de cambios
+- que el monto que se considere para dashboard, listas de proyectos, cotizaciones y clientes sea el bruto
+
+observaciones 10:
+dashboard
+- ventanas más fabricadas no sirve como tabla. propongo otro grafico, en el que se pueda seleccionar tipo y color
+- que ingreso de proyectos tenga filtro de tiempo que cambie la vista del grafico (semana-mes-6meses-año-3años-historico)
+- confirmar que "por cobrar - pagos pendientes" descuente abonos
+
+#Por hacer:
+#- exportar cotizacion
+#- exportar hoja de corte
+#- alertas
+#- loaders
+#- verificar calculo de vidrios
+#- procedimiento de linea 42
+#- gestor de perfiles para el jefe
+

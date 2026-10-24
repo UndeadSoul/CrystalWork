@@ -1,0 +1,1494 @@
+[
+{
+  "model": "core.cliente",
+  "pk": 5,
+  "fields": {
+    "empresa": 1,
+    "nombre": "Constructora Los Andes",
+    "rut": "11.111.111-1",
+    "telefono": "",
+    "email": "",
+    "direccion": "",
+    "creado_en": "2026-10-07T21:04:18.072Z",
+    "actualizado_en": "2026-10-07T21:04:18.072Z"
+  }
+},
+{
+  "model": "core.cliente",
+  "pk": 6,
+  "fields": {
+    "empresa": 1,
+    "nombre": "Armando Casas",
+    "rut": "20.324.143-7",
+    "telefono": "987653210",
+    "email": "",
+    "direccion": "",
+    "creado_en": "2026-10-12T02:03:08.169Z",
+    "actualizado_en": "2026-10-12T02:03:08.169Z"
+  }
+},
+{
+  "model": "core.seriealuminio",
+  "pk": 4,
+  "fields": {
+    "empresa": 1,
+    "codigo": "L20",
+    "nombre": "linea 20",
+    "peso_total_kg": "7.000"
+  }
+},
+{
+  "model": "core.seriealuminio",
+  "pk": 5,
+  "fields": {
+    "empresa": 1,
+    "codigo": "L25",
+    "nombre": "Serie Linea 25",
+    "peso_total_kg": "7.000"
+  }
+},
+{
+  "model": "core.perfilserie",
+  "pk": 16,
+  "fields": {
+    "serie": 4,
+    "nombre": "Riel superior",
+    "orden": 0,
+    "peso_kg": "3.288",
+    "largo_tira_m": "6.000",
+    "en_paquete": true
+  }
+},
+{
+  "model": "core.perfilserie",
+  "pk": 17,
+  "fields": {
+    "serie": 4,
+    "nombre": "Riel Inferior",
+    "orden": 1,
+    "peso_kg": "4.020",
+    "largo_tira_m": "6.000",
+    "en_paquete": true
+  }
+},
+{
+  "model": "core.perfilserie",
+  "pk": 18,
+  "fields": {
+    "serie": 4,
+    "nombre": "Zocalo",
+    "orden": 4,
+    "peso_kg": "2.688",
+    "largo_tira_m": "6.000",
+    "en_paquete": true
+  }
+},
+{
+  "model": "core.perfilserie",
+  "pk": 19,
+  "fields": {
+    "serie": 4,
+    "nombre": "Cabezal",
+    "orden": 3,
+    "peso_kg": "2.412",
+    "largo_tira_m": "6.000",
+    "en_paquete": true
+  }
+},
+{
+  "model": "core.perfilserie",
+  "pk": 20,
+  "fields": {
+    "serie": 4,
+    "nombre": "Batiente",
+    "orden": 5,
+    "peso_kg": "2.850",
+    "largo_tira_m": "6.000",
+    "en_paquete": true
+  }
+},
+{
+  "model": "core.perfilserie",
+  "pk": 21,
+  "fields": {
+    "serie": 4,
+    "nombre": "Traslapo",
+    "orden": 6,
+    "peso_kg": "2.772",
+    "largo_tira_m": "6.000",
+    "en_paquete": true
+  }
+},
+{
+  "model": "core.perfilserie",
+  "pk": 22,
+  "fields": {
+    "serie": 4,
+    "nombre": "Jamba",
+    "orden": 2,
+    "peso_kg": "2.802",
+    "largo_tira_m": "6.000",
+    "en_paquete": true
+  }
+},
+{
+  "model": "core.perfilserie",
+  "pk": 23,
+  "fields": {
+    "serie": 5,
+    "nombre": "Riel superior",
+    "orden": 0,
+    "peso_kg": "1.000",
+    "largo_tira_m": "6.000",
+    "en_paquete": true
+  }
+},
+{
+  "model": "core.perfilserie",
+  "pk": 24,
+  "fields": {
+    "serie": 5,
+    "nombre": "Riel Inferior",
+    "orden": 1,
+    "peso_kg": "1.200",
+    "largo_tira_m": "6.000",
+    "en_paquete": true
+  }
+},
+{
+  "model": "core.perfilserie",
+  "pk": 25,
+  "fields": {
+    "serie": 5,
+    "nombre": "Zocalo",
+    "orden": 4,
+    "peso_kg": "0.800",
+    "largo_tira_m": "6.000",
+    "en_paquete": true
+  }
+},
+{
+  "model": "core.perfilserie",
+  "pk": 26,
+  "fields": {
+    "serie": 5,
+    "nombre": "Cabezal",
+    "orden": 3,
+    "peso_kg": "0.800",
+    "largo_tira_m": "6.000",
+    "en_paquete": true
+  }
+},
+{
+  "model": "core.perfilserie",
+  "pk": 27,
+  "fields": {
+    "serie": 5,
+    "nombre": "Batiente",
+    "orden": 5,
+    "peso_kg": "1.100",
+    "largo_tira_m": "6.000",
+    "en_paquete": true
+  }
+},
+{
+  "model": "core.perfilserie",
+  "pk": 28,
+  "fields": {
+    "serie": 5,
+    "nombre": "Traslapo",
+    "orden": 6,
+    "peso_kg": "1.100",
+    "largo_tira_m": "6.000",
+    "en_paquete": true
+  }
+},
+{
+  "model": "core.perfilserie",
+  "pk": 29,
+  "fields": {
+    "serie": 5,
+    "nombre": "Jamba",
+    "orden": 2,
+    "peso_kg": "1.000",
+    "largo_tira_m": "6.000",
+    "en_paquete": true
+  }
+},
+{
+  "model": "core.perfilserie",
+  "pk": 30,
+  "fields": {
+    "serie": 4,
+    "nombre": "Riel inferior simple",
+    "orden": 7,
+    "peso_kg": "3.288",
+    "largo_tira_m": "6.000",
+    "en_paquete": false
+  }
+},
+{
+  "model": "core.perfilserie",
+  "pk": 31,
+  "fields": {
+    "serie": 5,
+    "nombre": "Riel inferior simple",
+    "orden": 7,
+    "peso_kg": "1.300",
+    "largo_tira_m": "6.000",
+    "en_paquete": false
+  }
+},
+{
+  "model": "core.precioserie",
+  "pk": 12,
+  "fields": {
+    "serie": 4,
+    "color": "BRONCE",
+    "precio": "104440"
+  }
+},
+{
+  "model": "core.precioserie",
+  "pk": 13,
+  "fields": {
+    "serie": 4,
+    "color": "MATE",
+    "precio": "103685"
+  }
+},
+{
+  "model": "core.precioserie",
+  "pk": 14,
+  "fields": {
+    "serie": 4,
+    "color": "ALUMINIO",
+    "precio": "111127"
+  }
+},
+{
+  "model": "core.precioserie",
+  "pk": 16,
+  "fields": {
+    "serie": 4,
+    "color": "MADERA",
+    "precio": "114374"
+  }
+},
+{
+  "model": "core.precioserie",
+  "pk": 17,
+  "fields": {
+    "serie": 5,
+    "color": "BRONCE",
+    "precio": "85000"
+  }
+},
+{
+  "model": "core.precioserie",
+  "pk": 18,
+  "fields": {
+    "serie": 5,
+    "color": "MATE",
+    "precio": "90000"
+  }
+},
+{
+  "model": "core.precioserie",
+  "pk": 19,
+  "fields": {
+    "serie": 5,
+    "color": "ALUMINIO",
+    "precio": "95000"
+  }
+},
+{
+  "model": "core.precioserie",
+  "pk": 20,
+  "fields": {
+    "serie": 5,
+    "color": "TITANEO",
+    "precio": "100000"
+  }
+},
+{
+  "model": "core.precioserie",
+  "pk": 21,
+  "fields": {
+    "serie": 5,
+    "color": "MADERA",
+    "precio": "105000"
+  }
+},
+{
+  "model": "core.precioserie",
+  "pk": 22,
+  "fields": {
+    "serie": 4,
+    "color": "TITANEO",
+    "precio": "103948"
+  }
+},
+{
+  "model": "core.planchavidrio",
+  "pk": 1,
+  "fields": {
+    "empresa": 1,
+    "tipo_vidrio": "BRONCE_4",
+    "ancho_plancha_m": "2.400",
+    "alto_plancha_m": "3.600",
+    "precio": "51000"
+  }
+},
+{
+  "model": "core.planchavidrio",
+  "pk": 2,
+  "fields": {
+    "empresa": 1,
+    "tipo_vidrio": "BRONCE_5",
+    "ancho_plancha_m": "2.400",
+    "alto_plancha_m": "3.600",
+    "precio": "65000"
+  }
+},
+{
+  "model": "core.planchavidrio",
+  "pk": 3,
+  "fields": {
+    "empresa": 1,
+    "tipo_vidrio": "INCOLORO_4",
+    "ancho_plancha_m": "2.400",
+    "alto_plancha_m": "3.600",
+    "precio": "50000"
+  }
+},
+{
+  "model": "core.planchavidrio",
+  "pk": 4,
+  "fields": {
+    "empresa": 1,
+    "tipo_vidrio": "INCOLORO_5",
+    "ancho_plancha_m": "2.400",
+    "alto_plancha_m": "3.600",
+    "precio": "60000"
+  }
+},
+{
+  "model": "core.planchavidrio",
+  "pk": 5,
+  "fields": {
+    "empresa": 1,
+    "tipo_vidrio": "SOLARCOOL_4",
+    "ancho_plancha_m": "2.400",
+    "alto_plancha_m": "3.600",
+    "precio": "80000"
+  }
+},
+{
+  "model": "core.planchavidrio",
+  "pk": 6,
+  "fields": {
+    "empresa": 1,
+    "tipo_vidrio": "SOLARCOOL_5",
+    "ancho_plancha_m": "2.400",
+    "alto_plancha_m": "3.600",
+    "precio": "95000"
+  }
+},
+{
+  "model": "core.insumo",
+  "pk": 1,
+  "fields": {
+    "empresa": 1,
+    "codigo": "FELPA",
+    "nombre": "Felpa",
+    "unidad": "m",
+    "precio_paquete": "5000",
+    "cantidad_paquete": "100.000"
+  }
+},
+{
+  "model": "core.insumo",
+  "pk": 2,
+  "fields": {
+    "empresa": 1,
+    "codigo": "BURLETE",
+    "nombre": "Burlete",
+    "unidad": "m",
+    "precio_paquete": "5200",
+    "cantidad_paquete": "100.000"
+  }
+},
+{
+  "model": "core.insumo",
+  "pk": 3,
+  "fields": {
+    "empresa": 1,
+    "codigo": "PESTILLO",
+    "nombre": "Pestillo",
+    "unidad": "unidad",
+    "precio_paquete": "3000",
+    "cantidad_paquete": "10.000"
+  }
+},
+{
+  "model": "core.insumo",
+  "pk": 4,
+  "fields": {
+    "empresa": 1,
+    "codigo": "CARACOL",
+    "nombre": "Caracol",
+    "unidad": "unidad",
+    "precio_paquete": "2000",
+    "cantidad_paquete": "10.000"
+  }
+},
+{
+  "model": "core.insumo",
+  "pk": 5,
+  "fields": {
+    "empresa": 1,
+    "codigo": "RODAMIENTO",
+    "nombre": "Rodamiento",
+    "unidad": "unidad",
+    "precio_paquete": "4000",
+    "cantidad_paquete": "10.000"
+  }
+},
+{
+  "model": "core.insumo",
+  "pk": 6,
+  "fields": {
+    "empresa": 1,
+    "codigo": "TORNILLO",
+    "nombre": "Tornillo",
+    "unidad": "unidad",
+    "precio_paquete": "1000",
+    "cantidad_paquete": "100.000"
+  }
+},
+{
+  "model": "core.insumo",
+  "pk": 7,
+  "fields": {
+    "empresa": 1,
+    "codigo": "SILICONA",
+    "nombre": "Silicona",
+    "unidad": "unidad",
+    "precio_paquete": "2500",
+    "cantidad_paquete": "1.000"
+  }
+},
+{
+  "model": "core.cotizacion",
+  "pk": 16,
+  "fields": {
+    "empresa": 1,
+    "cliente": 5,
+    "empleado": 3,
+    "estado": "APROBADA",
+    "direccion_entrega": "",
+    "requiere_transporte": false,
+    "distancia_transporte_km": null,
+    "comentarios": "editada",
+    "monto_agregado": "0",
+    "costo_transporte": "0",
+    "total": "36520",
+    "fecha_ingreso": "2026-10-07T21:04:18.140Z",
+    "fecha_resolucion": "2026-10-07T21:04:18.434Z",
+    "resuelta_por": 2
+  }
+},
+{
+  "model": "core.cotizacion",
+  "pk": 17,
+  "fields": {
+    "empresa": 1,
+    "cliente": 5,
+    "empleado": 2,
+    "estado": "APROBADA",
+    "direccion_entrega": "",
+    "requiere_transporte": false,
+    "distancia_transporte_km": null,
+    "comentarios": "",
+    "monto_agregado": "0",
+    "costo_transporte": "0",
+    "total": "180711",
+    "fecha_ingreso": "2026-10-07T23:04:01.632Z",
+    "fecha_resolucion": "2026-10-07T23:04:18.246Z",
+    "resuelta_por": 2
+  }
+},
+{
+  "model": "core.cotizacion",
+  "pk": 18,
+  "fields": {
+    "empresa": 1,
+    "cliente": 5,
+    "empleado": 2,
+    "estado": "APROBADA",
+    "direccion_entrega": "fhhhf",
+    "requiere_transporte": false,
+    "distancia_transporte_km": null,
+    "comentarios": "lleva marco",
+    "monto_agregado": "20000",
+    "costo_transporte": "0",
+    "total": "176770",
+    "fecha_ingreso": "2026-10-08T00:06:11.171Z",
+    "fecha_resolucion": "2026-10-08T00:24:00.578Z",
+    "resuelta_por": 2
+  }
+},
+{
+  "model": "core.cotizacion",
+  "pk": 19,
+  "fields": {
+    "empresa": 1,
+    "cliente": 6,
+    "empleado": 2,
+    "estado": "RECHAZADA",
+    "direccion_entrega": "",
+    "requiere_transporte": false,
+    "distancia_transporte_km": null,
+    "comentarios": "",
+    "monto_agregado": "0",
+    "costo_transporte": "0",
+    "total": "103740",
+    "fecha_ingreso": "2026-10-12T03:52:09.096Z",
+    "fecha_resolucion": "2026-10-12T03:53:13.795Z",
+    "resuelta_por": 2
+  }
+},
+{
+  "model": "core.cotizacion",
+  "pk": 20,
+  "fields": {
+    "empresa": 1,
+    "cliente": 6,
+    "empleado": 2,
+    "estado": "APROBADA",
+    "direccion_entrega": "",
+    "requiere_transporte": false,
+    "distancia_transporte_km": null,
+    "comentarios": "",
+    "monto_agregado": "0",
+    "costo_transporte": "0",
+    "total": "276164",
+    "fecha_ingreso": "2026-10-12T04:10:00.384Z",
+    "fecha_resolucion": "2026-10-12T04:10:06.188Z",
+    "resuelta_por": 2
+  }
+},
+{
+  "model": "core.ventanacotizada",
+  "pk": 26,
+  "fields": {
+    "cotizacion": 16,
+    "tipo": "Linea20lluvia",
+    "color": "TITANEO",
+    "vidrio": "BRONCE_4",
+    "ancho_mm": 0,
+    "alto_mm": 0,
+    "cantidad": 1,
+    "costo_unitario": "28092",
+    "precio_unitario": "36520",
+    "subtotal": "36520",
+    "precio_calculado": true
+  }
+},
+{
+  "model": "core.ventanacotizada",
+  "pk": 27,
+  "fields": {
+    "cotizacion": 17,
+    "tipo": "Linea20simple",
+    "color": "BRONCE",
+    "vidrio": "BRONCE_4",
+    "ancho_mm": 0,
+    "alto_mm": 0,
+    "cantidad": 1,
+    "costo_unitario": "30291",
+    "precio_unitario": "39378",
+    "subtotal": "39378",
+    "precio_calculado": true
+  }
+},
+{
+  "model": "core.ventanacotizada",
+  "pk": 28,
+  "fields": {
+    "cotizacion": 17,
+    "tipo": "Linea20lluvia",
+    "color": "BRONCE",
+    "vidrio": "BRONCE_4",
+    "ancho_mm": 0,
+    "alto_mm": 0,
+    "cantidad": 1,
+    "costo_unitario": "30022",
+    "precio_unitario": "39029",
+    "subtotal": "39029",
+    "precio_calculado": true
+  }
+},
+{
+  "model": "core.ventanacotizada",
+  "pk": 29,
+  "fields": {
+    "cotizacion": 17,
+    "tipo": "Linea25simple",
+    "color": "BRONCE",
+    "vidrio": "BRONCE_4",
+    "ancho_mm": 0,
+    "alto_mm": 0,
+    "cantidad": 1,
+    "costo_unitario": "39518",
+    "precio_unitario": "51373",
+    "subtotal": "51373",
+    "precio_calculado": true
+  }
+},
+{
+  "model": "core.ventanacotizada",
+  "pk": 30,
+  "fields": {
+    "cotizacion": 17,
+    "tipo": "Linea25lluvia",
+    "color": "BRONCE",
+    "vidrio": "BRONCE_4",
+    "ancho_mm": 0,
+    "alto_mm": 0,
+    "cantidad": 1,
+    "costo_unitario": "39178",
+    "precio_unitario": "50931",
+    "subtotal": "50931",
+    "precio_calculado": true
+  }
+},
+{
+  "model": "core.ventanacotizada",
+  "pk": 33,
+  "fields": {
+    "cotizacion": 18,
+    "tipo": "Linea20simple",
+    "color": "TITANEO",
+    "vidrio": "INCOLORO_4",
+    "ancho_mm": 0,
+    "alto_mm": 0,
+    "cantidad": 1,
+    "costo_unitario": "31966",
+    "precio_unitario": "41556",
+    "subtotal": "41556",
+    "precio_calculado": true
+  }
+},
+{
+  "model": "core.ventanacotizada",
+  "pk": 34,
+  "fields": {
+    "cotizacion": 18,
+    "tipo": "Linea25simple",
+    "color": "BRONCE",
+    "vidrio": "INCOLORO_5",
+    "ancho_mm": 0,
+    "alto_mm": 0,
+    "cantidad": 2,
+    "costo_unitario": "44313",
+    "precio_unitario": "57607",
+    "subtotal": "115214",
+    "precio_calculado": true
+  }
+},
+{
+  "model": "core.ventanacotizada",
+  "pk": 36,
+  "fields": {
+    "cotizacion": 19,
+    "tipo": "Linea20simple",
+    "color": "MATE",
+    "vidrio": "INCOLORO_4",
+    "ancho_mm": 1200,
+    "alto_mm": 1200,
+    "cantidad": 2,
+    "costo_unitario": "39900",
+    "precio_unitario": "51870",
+    "subtotal": "103740",
+    "precio_calculado": true
+  }
+},
+{
+  "model": "core.ventanacotizada",
+  "pk": 37,
+  "fields": {
+    "cotizacion": 20,
+    "tipo": "Linea20simple",
+    "color": "BRONCE",
+    "vidrio": "BRONCE_4",
+    "ancho_mm": 1200,
+    "alto_mm": 1200,
+    "cantidad": 2,
+    "costo_unitario": "30219",
+    "precio_unitario": "39285",
+    "subtotal": "78570",
+    "precio_calculado": true
+  }
+},
+{
+  "model": "core.ventanacotizada",
+  "pk": 38,
+  "fields": {
+    "cotizacion": 20,
+    "tipo": "Linea25simple",
+    "color": "MATE",
+    "vidrio": "INCOLORO_4",
+    "ancho_mm": 2000,
+    "alto_mm": 2000,
+    "cantidad": 2,
+    "costo_unitario": "75998",
+    "precio_unitario": "98797",
+    "subtotal": "197594",
+    "precio_calculado": true
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 1,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PROYECTO",
+    "objeto_tipo": "proyecto",
+    "objeto_id": 12,
+    "objeto_label": "Proyecto #12",
+    "campo": "Pago",
+    "valor_anterior": "Pendiente",
+    "valor_nuevo": "Abonado",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T04:29:51.464Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 2,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PROYECTO",
+    "objeto_tipo": "proyecto",
+    "objeto_id": 12,
+    "objeto_label": "Proyecto #12",
+    "campo": "Pago",
+    "valor_anterior": "Abonado",
+    "valor_nuevo": "Pendiente",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T04:30:02.616Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 3,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PROYECTO",
+    "objeto_tipo": "proyecto",
+    "objeto_id": 12,
+    "objeto_label": "Proyecto #12",
+    "campo": "Fabricación",
+    "valor_anterior": "Por iniciar",
+    "valor_nuevo": "En fabricacion",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T04:30:15.213Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 4,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PROYECTO",
+    "objeto_tipo": "proyecto",
+    "objeto_id": 12,
+    "objeto_label": "Proyecto #12",
+    "campo": "Pago",
+    "valor_anterior": "Pendiente",
+    "valor_nuevo": "Abonado",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T04:30:17.448Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 5,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PROYECTO",
+    "objeto_tipo": "proyecto",
+    "objeto_id": 12,
+    "objeto_label": "Proyecto #12",
+    "campo": "Pago",
+    "valor_anterior": "Abonado",
+    "valor_nuevo": "Pagado",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T04:31:34.286Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 6,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PROYECTO",
+    "objeto_tipo": "proyecto",
+    "objeto_id": 12,
+    "objeto_label": "Proyecto #12",
+    "campo": "Pago",
+    "valor_anterior": "Pagado",
+    "valor_nuevo": "Abonado",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T06:01:11.841Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 7,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PROYECTO",
+    "objeto_tipo": "proyecto",
+    "objeto_id": 12,
+    "objeto_label": "Proyecto #12",
+    "campo": "Pago",
+    "valor_anterior": "Abonado",
+    "valor_nuevo": "Pagado",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T06:01:11.889Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 8,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PROYECTO",
+    "objeto_tipo": "proyecto",
+    "objeto_id": 12,
+    "objeto_label": "Proyecto #12",
+    "campo": "Pago",
+    "valor_anterior": "Pagado",
+    "valor_nuevo": "Abonado",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T06:07:45.386Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 9,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PROYECTO",
+    "objeto_tipo": "proyecto",
+    "objeto_id": 12,
+    "objeto_label": "Proyecto #12",
+    "campo": "Pago",
+    "valor_anterior": "Abonado",
+    "valor_nuevo": "Pagado",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T06:11:25.834Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 10,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PROYECTO",
+    "objeto_tipo": "proyecto",
+    "objeto_id": 10,
+    "objeto_label": "Proyecto #10",
+    "campo": "Fabricación",
+    "valor_anterior": "Por iniciar",
+    "valor_nuevo": "Terminado",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T06:27:41.331Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 11,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PROYECTO",
+    "objeto_tipo": "proyecto",
+    "objeto_id": 11,
+    "objeto_label": "Proyecto #11",
+    "campo": "Pago",
+    "valor_anterior": "Pendiente",
+    "valor_nuevo": "Abonado",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T06:49:35.881Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 12,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PROYECTO",
+    "objeto_tipo": "proyecto",
+    "objeto_id": 11,
+    "objeto_label": "Proyecto #11",
+    "campo": "Monto abonado",
+    "valor_anterior": "0",
+    "valor_nuevo": "68000",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T06:49:40.979Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 13,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 21,
+    "objeto_label": "L20 · Traslapo",
+    "campo": "Largo tira (m)",
+    "valor_anterior": "5.800",
+    "valor_nuevo": "6.000",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:17:55.272Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 14,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 20,
+    "objeto_label": "L20 · Batiente",
+    "campo": "Largo tira (m)",
+    "valor_anterior": "5.800",
+    "valor_nuevo": "6.000",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:17:55.423Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 15,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 30,
+    "objeto_label": "L20 · Riel inferior simple",
+    "campo": "Largo tira (m)",
+    "valor_anterior": "5.800",
+    "valor_nuevo": "6.000",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:17:55.470Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 16,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 22,
+    "objeto_label": "L20 · Jamba",
+    "campo": "Largo tira (m)",
+    "valor_anterior": "5.800",
+    "valor_nuevo": "6.000",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:17:55.670Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 17,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 19,
+    "objeto_label": "L20 · Cabezal",
+    "campo": "Largo tira (m)",
+    "valor_anterior": "5.800",
+    "valor_nuevo": "6.000",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:17:55.810Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 18,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 18,
+    "objeto_label": "L20 · Zocalo",
+    "campo": "Largo tira (m)",
+    "valor_anterior": "5.800",
+    "valor_nuevo": "6.000",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:17:55.997Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 19,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 17,
+    "objeto_label": "L20 · Riel Inferior",
+    "campo": "Largo tira (m)",
+    "valor_anterior": "5.800",
+    "valor_nuevo": "6.000",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:17:56.172Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 20,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "precio-serie",
+    "objeto_id": 12,
+    "objeto_label": "L20 · Bronce (Negro)",
+    "campo": "Precio paquete",
+    "valor_anterior": "71000",
+    "valor_nuevo": "104440",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:19:37.186Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 21,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 23,
+    "objeto_label": "L25 · Riel superior",
+    "campo": "Largo tira (m)",
+    "valor_anterior": "5.800",
+    "valor_nuevo": "6.000",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:19:37.379Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 22,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 29,
+    "objeto_label": "L25 · Jamba",
+    "campo": "Largo tira (m)",
+    "valor_anterior": "5.800",
+    "valor_nuevo": "6.000",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:19:37.907Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 23,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 27,
+    "objeto_label": "L25 · Batiente",
+    "campo": "Largo tira (m)",
+    "valor_anterior": "5.800",
+    "valor_nuevo": "6.000",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:19:37.990Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 24,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 25,
+    "objeto_label": "L25 · Zocalo",
+    "campo": "Largo tira (m)",
+    "valor_anterior": "5.800",
+    "valor_nuevo": "6.000",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:19:38.111Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 25,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 31,
+    "objeto_label": "L25 · Riel inferior simple",
+    "campo": "Largo tira (m)",
+    "valor_anterior": "5.800",
+    "valor_nuevo": "6.000",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:19:37.247Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 26,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 26,
+    "objeto_label": "L25 · Cabezal",
+    "campo": "Largo tira (m)",
+    "valor_anterior": "5.800",
+    "valor_nuevo": "6.000",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:19:38.296Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 27,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 28,
+    "objeto_label": "L25 · Traslapo",
+    "campo": "Largo tira (m)",
+    "valor_anterior": "5.800",
+    "valor_nuevo": "6.000",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:19:38.346Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 28,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 24,
+    "objeto_label": "L25 · Riel Inferior",
+    "campo": "Largo tira (m)",
+    "valor_anterior": "5.800",
+    "valor_nuevo": "6.000",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:19:37.692Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 29,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 18,
+    "objeto_label": "L20 · Zocalo",
+    "campo": "Peso (kg)",
+    "valor_anterior": "0.800",
+    "valor_nuevo": "2.688",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:40:28.419Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 30,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 21,
+    "objeto_label": "L20 · Traslapo",
+    "campo": "Peso (kg)",
+    "valor_anterior": "1.100",
+    "valor_nuevo": "2.772",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:40:28.459Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 31,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 30,
+    "objeto_label": "L20 · Riel inferior simple",
+    "campo": "Peso (kg)",
+    "valor_anterior": "1.300",
+    "valor_nuevo": "3.288",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:40:28.510Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 32,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 16,
+    "objeto_label": "L20 · Riel superior",
+    "campo": "Peso (kg)",
+    "valor_anterior": "1.050",
+    "valor_nuevo": "3.288",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:40:28.438Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 33,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 20,
+    "objeto_label": "L20 · Batiente",
+    "campo": "Peso (kg)",
+    "valor_anterior": "1.100",
+    "valor_nuevo": "2.850",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:40:28.637Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 34,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 19,
+    "objeto_label": "L20 · Cabezal",
+    "campo": "Peso (kg)",
+    "valor_anterior": "0.800",
+    "valor_nuevo": "2.412",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:40:28.770Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 35,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 17,
+    "objeto_label": "L20 · Riel Inferior",
+    "campo": "Peso (kg)",
+    "valor_anterior": "1.200",
+    "valor_nuevo": "4.020",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:40:29.758Z"
+  }
+},
+{
+  "model": "core.cambioregistro",
+  "pk": 36,
+  "fields": {
+    "empresa": 1,
+    "categoria": "PRECIO",
+    "objeto_tipo": "perfil",
+    "objeto_id": 22,
+    "objeto_label": "L20 · Jamba",
+    "campo": "Peso (kg)",
+    "valor_anterior": "1.000",
+    "valor_nuevo": "2.802",
+    "usuario": 2,
+    "usuario_nombre": "jefe",
+    "creado_en": "2026-10-12T07:40:28.364Z"
+  }
+},
+{
+  "model": "projects.proyecto",
+  "pk": 9,
+  "fields": {
+    "cotizacion": 16,
+    "empresa": 1,
+    "cliente": 5,
+    "estado_produccion": "POR_INICIAR",
+    "estado_pago": "PENDIENTE",
+    "monto_abonado": "0",
+    "fecha_creacion": "2026-10-07T21:04:18.469Z"
+  }
+},
+{
+  "model": "projects.proyecto",
+  "pk": 10,
+  "fields": {
+    "cotizacion": 17,
+    "empresa": 1,
+    "cliente": 5,
+    "estado_produccion": "TERMINADO",
+    "estado_pago": "PENDIENTE",
+    "monto_abonado": "0",
+    "fecha_creacion": "2026-10-07T23:04:18.289Z"
+  }
+},
+{
+  "model": "projects.proyecto",
+  "pk": 11,
+  "fields": {
+    "cotizacion": 18,
+    "empresa": 1,
+    "cliente": 5,
+    "estado_produccion": "POR_INICIAR",
+    "estado_pago": "ABONADO",
+    "monto_abonado": "68000",
+    "fecha_creacion": "2026-10-08T00:24:00.627Z"
+  }
+},
+{
+  "model": "projects.proyecto",
+  "pk": 12,
+  "fields": {
+    "cotizacion": 20,
+    "empresa": 1,
+    "cliente": 6,
+    "estado_produccion": "EN_FABRICACION",
+    "estado_pago": "PAGADO",
+    "monto_abonado": "276000",
+    "fecha_creacion": "2026-10-12T04:10:06.226Z"
+  }
+},
+{
+  "model": "users.empresa",
+  "pk": 1,
+  "fields": {
+    "nombre": "Ventanas Demo",
+    "rut": "76.123.456-7",
+    "direccion": "Av. Siempreviva 742",
+    "telefono": "",
+    "email": "",
+    "activa": true,
+    "creada_en": "2026-09-30T22:06:52.139Z",
+    "margen_ganancia_pct": "30.00",
+    "precio_transporte_km": "1000"
+  }
+},
+{
+  "model": "users.usuario",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$1500000$vpu2GZlTJmyi8GbpVde6fw$zDPgxDXgZ3xMBDV27L3DwwgTO6rjxMi7gVyM0VKJzoA=",
+    "last_login": null,
+    "is_superuser": true,
+    "username": "admin",
+    "first_name": "",
+    "last_name": "",
+    "email": "admin@crystalwork.local",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-09-30T22:06:51.149Z",
+    "empresa": null,
+    "rol": null,
+    "telefono": "",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.usuario",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$1500000$gS7kzlsUgM2PmYBkqaUrbc$RdvitbK+rhsqtpxDZiapJr6PLkOLjIXtV8R46m3xeEQ=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "jefe",
+    "first_name": "Jefe",
+    "last_name": "Demo",
+    "email": "jefe@demo.local",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-09-30T22:06:52.155Z",
+    "empresa": 1,
+    "rol": "JEFE",
+    "telefono": "",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.usuario",
+  "pk": 3,
+  "fields": {
+    "password": "pbkdf2_sha256$1500000$ZTGvEn0lnLBmHscSAmFC1h$LTzg6qzM6j28zCwtIv6uWLBAYoKPcZ5YGG8Lcjgcxzk=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "operario",
+    "first_name": "Operario",
+    "last_name": "Demo",
+    "email": "operario@demo.local",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-09-30T22:07:14.024Z",
+    "empresa": 1,
+    "rol": "OPERARIO",
+    "telefono": "",
+    "groups": [],
+    "user_permissions": []
+  }
+}
+]
