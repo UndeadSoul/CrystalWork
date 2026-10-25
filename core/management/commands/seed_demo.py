@@ -65,9 +65,11 @@ PRECIO_VIDRIO = {
 INSUMOS = {
     "FELPA": (3000, Decimal("100")),
     "BURLETE": (5200, Decimal("100")),
-    "PESTILLO": (1500, Decimal("1")),
+    "PESTILLO_L20": (1500, Decimal("1")),
+    "PESTILLO_L25": (1500, Decimal("1")),
     "CARACOL": (2000, Decimal("1")),
-    "RODAMIENTO": (800, Decimal("1")),
+    "RODAMIENTO_L20": (800, Decimal("1")),
+    "RODAMIENTO_L25": (800, Decimal("1")),
     "TORNILLO": (50, Decimal("1")),
     "SILICONA": (3500, Decimal("1")),
 }

@@ -1,7 +1,35 @@
 from django.conf import settings
 from django.db import models
+from django.db.models import Q
+from django.db.models.functions import Length
 
 from users.models import Empresa
+
+from . import validacion as val
+
+# Permite usar campo__length en las restricciones CHECK.
+models.CharField.register_lookup(Length)
+models.TextField.register_lookup(Length)
+
+
+def _largo_opcional(campo, minimo, maximo):
+    """CHECK: el texto esta vacio o su largo esta en [minimo, maximo]."""
+    return Q(**{campo: ""}) | Q(**{f"{campo}__length__range": (minimo, maximo)})
+
+
+def _rango(nombre, campo, minimo, maximo, cero=False):
+    """CHECK: el valor esta en [minimo, maximo] (o es 0 si cero=True)."""
+    condicion = Q(**{f"{campo}__range": (minimo, maximo)})
+    if cero:
+        condicion |= Q(**{campo: 0})
+    return models.CheckConstraint(condition=condicion, name=nombre)
+
+
+def _opcion_valida(nombre, campo, choices):
+    """CHECK: el valor es una de las opciones del campo."""
+    return models.CheckConstraint(
+        condition=Q(**{f"{campo}__in": choices.values}), name=nombre
+    )
 
 
 # ============================================================
@@ -50,11 +78,21 @@ class Cliente(models.Model):
         on_delete=models.PROTECT,
         related_name="clientes",
     )
-    nombre = models.CharField(max_length=100)
-    rut = models.CharField(max_length=20, blank=True)
-    telefono = models.CharField(max_length=30, blank=True)
-    email = models.EmailField(max_length=100, blank=True)
-    direccion = models.CharField(max_length=100, blank=True)
+    nombre = models.CharField(max_length=val.NOMBRE_MAX, validators=val.validar_nombre)
+    rut = models.CharField(
+        max_length=val.RUT_MAX,
+        validators=[val.validar_rut],
+        help_text="Formato 12.345.678-9. Unico por empresa.",
+    )
+    telefono = models.CharField(
+        max_length=val.TELEFONO_MAX, blank=True, validators=[val.validar_telefono]
+    )
+    email = models.EmailField(
+        max_length=val.EMAIL_MAX, blank=True, validators=val.validar_email
+    )
+    direccion = models.CharField(
+        max_length=val.DIRECCION_MAX, blank=True, validators=val.validar_direccion
+    )
     creado_en = models.DateTimeField(auto_now_add=True)
     actualizado_en = models.DateTimeField(auto_now=True)
 
@@ -62,6 +100,34 @@ class Cliente(models.Model):
         verbose_name = "Cliente"
         verbose_name_plural = "Clientes"
         ordering = ["nombre"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["empresa", "rut"],
+                name="cliente_rut_unico_por_empresa",
+                violation_error_message="Ya existe un cliente con este RUT.",
+            ),
+            models.CheckConstraint(
+                condition=Q(nombre__length__range=(val.NOMBRE_MIN, val.NOMBRE_MAX)),
+                name="cliente_nombre_largo",
+            ),
+            models.CheckConstraint(
+                # "1.234.567-8" .. "12.345.678-9"
+                condition=Q(rut__length__range=(9, val.RUT_MAX)),
+                name="cliente_rut_largo",
+            ),
+            models.CheckConstraint(
+                condition=_largo_opcional(
+                    "direccion", val.DIRECCION_MIN, val.DIRECCION_MAX
+                ),
+                name="cliente_direccion_largo",
+            ),
+            models.CheckConstraint(
+                condition=_largo_opcional(
+                    "telefono", val.TELEFONO_DIGITOS_MIN, val.TELEFONO_MAX
+                ),
+                name="cliente_telefono_largo",
+            ),
+        ]
 
     def __str__(self):
         return self.nombre
@@ -87,15 +153,28 @@ class SerieAluminio(models.Model):
         max_digits=8,
         decimal_places=3,
         default=0,
+        validators=[val.validar_peso_serie],
         help_text="Peso del paquete (serie completa) en kg. Se usa como "
-        "denominador en el calculo de precio de cada perfil.",
+        "denominador en el calculo de precio de cada perfil. 0 = sin configurar.",
     )
+
+    # Control de concurrencia optimista (edicion en bloque en Precios).
+    version = models.PositiveIntegerField(default=1)
 
     class Meta:
         verbose_name = "Serie de aluminio"
         verbose_name_plural = "Series de aluminio"
         unique_together = ("empresa", "codigo")
         ordering = ["codigo"]
+        constraints = [
+            _rango(
+                "serie_peso_total_rango",
+                "peso_total_kg",
+                val.PESO_SERIE_MIN,
+                val.PESO_SERIE_MAX,
+                cero=True,
+            ),
+        ]
 
     def __str__(self):
         return self.nombre
@@ -119,19 +198,46 @@ class PerfilSerie(models.Model):
     orden = models.PositiveSmallIntegerField(
         default=0, help_text="Orden de aparicion en listas y hoja de corte."
     )
-    peso_kg = models.DecimalField(max_digits=7, decimal_places=3)
-    largo_tira_m = models.DecimalField(max_digits=6, decimal_places=3)
+    peso_kg = models.DecimalField(
+        max_digits=7,
+        decimal_places=3,
+        validators=[val.validar_peso_perfil],
+        help_text="0 = sin configurar. No puede superar el peso total de la serie.",
+    )
+    largo_tira_m = models.DecimalField(
+        max_digits=6, decimal_places=3, validators=[val.validar_largo_tira]
+    )
     en_paquete = models.BooleanField(
         default=True,
         help_text="Si viene en el paquete (cuenta para el peso de la serie). "
         "El riel inferior simple va fuera del paquete.",
     )
 
+    # Control de concurrencia optimista (edicion en bloque en Precios).
+    version = models.PositiveIntegerField(default=1)
+
     class Meta:
         verbose_name = "Perfil de serie"
         verbose_name_plural = "Perfiles de serie"
         unique_together = ("serie", "nombre")
         ordering = ["serie", "orden", "nombre"]
+        # El tope "<= peso total de la serie" cruza tablas: se valida en el
+        # serializer; aqui solo el rango absoluto.
+        constraints = [
+            _rango(
+                "perfil_peso_rango",
+                "peso_kg",
+                val.PESO_PERFIL_MIN,
+                val.PESO_SERIE_MAX,
+                cero=True,
+            ),
+            _rango(
+                "perfil_largo_tira_rango",
+                "largo_tira_m",
+                val.LARGO_TIRA_MIN,
+                val.LARGO_TIRA_MAX,
+            ),
+        ]
 
     def __str__(self):
         return f"{self.serie.codigo} · {self.nombre}"
@@ -145,13 +251,23 @@ class PrecioSerie(models.Model):
     )
     color = models.CharField(max_length=20, choices=ColorAluminio.choices)
     precio = models.DecimalField(
-        max_digits=12, decimal_places=0, help_text="Precio del paquete completo (CLP)."
+        max_digits=12,
+        decimal_places=0,
+        validators=[val.validar_precio],
+        help_text="Precio del paquete completo (CLP). 0 = sin precio.",
     )
+
+    # Control de concurrencia optimista (edicion en bloque en Precios).
+    version = models.PositiveIntegerField(default=1)
 
     class Meta:
         verbose_name = "Precio de serie"
         verbose_name_plural = "Precios de serie"
         unique_together = ("serie", "color")
+        constraints = [
+            _rango("precio_serie_rango", "precio", 0, val.PRECIO_MAX),
+            _opcion_valida("precio_serie_color_valido", "color", ColorAluminio),
+        ]
 
     def __str__(self):
         return f"{self.serie.codigo} {self.get_color_display()}: {self.precio}"
@@ -164,16 +280,32 @@ class PlanchaVidrio(models.Model):
         Empresa, on_delete=models.CASCADE, related_name="planchas_vidrio"
     )
     tipo_vidrio = models.CharField(max_length=20, choices=TipoVidrio.choices)
-    ancho_plancha_m = models.DecimalField(max_digits=5, decimal_places=3)
-    alto_plancha_m = models.DecimalField(max_digits=5, decimal_places=3)
-    precio = models.DecimalField(
-        max_digits=12, decimal_places=0, help_text="Precio de la plancha (CLP)."
+    ancho_plancha_m = models.DecimalField(
+        max_digits=5, decimal_places=3, validators=[val.validar_plancha]
     )
+    alto_plancha_m = models.DecimalField(
+        max_digits=5, decimal_places=3, validators=[val.validar_plancha]
+    )
+    precio = models.DecimalField(
+        max_digits=12,
+        decimal_places=0,
+        validators=[val.validar_precio],
+        help_text="Precio de la plancha (CLP). 0 = sin precio.",
+    )
+
+    # Control de concurrencia optimista (edicion en bloque en Precios).
+    version = models.PositiveIntegerField(default=1)
 
     class Meta:
         verbose_name = "Plancha de vidrio"
         verbose_name_plural = "Planchas de vidrio"
         unique_together = ("empresa", "tipo_vidrio")
+        constraints = [
+            _rango("plancha_ancho_rango", "ancho_plancha_m", val.PLANCHA_MIN, val.PLANCHA_MAX),
+            _rango("plancha_alto_rango", "alto_plancha_m", val.PLANCHA_MIN, val.PLANCHA_MAX),
+            _rango("plancha_precio_rango", "precio", 0, val.PRECIO_MAX),
+            _opcion_valida("plancha_tipo_valido", "tipo_vidrio", TipoVidrio),
+        ]
 
     def __str__(self):
         return f"{self.get_tipo_vidrio_display()}"
@@ -192,24 +324,40 @@ class Insumo(models.Model):
         Empresa, on_delete=models.CASCADE, related_name="insumos"
     )
     codigo = models.CharField(
-        max_length=30, help_text="Ej: FELPA, PESTILLO, BURLETE."
+        max_length=30, help_text="Ej: FELPA, PESTILLO_L20, BURLETE."
     )
     nombre = models.CharField(max_length=80)
     unidad = models.CharField(
         max_length=20, blank=True, help_text="Informativo: m, unidad, etc."
     )
-    precio_paquete = models.DecimalField(max_digits=12, decimal_places=0)
+    precio_paquete = models.DecimalField(
+        max_digits=12,
+        decimal_places=0,
+        validators=[val.validar_precio],
+        help_text="0 = sin precio.",
+    )
     cantidad_paquete = models.DecimalField(
         max_digits=12,
         decimal_places=3,
-        help_text="Unidades o metros que trae el paquete/rollo.",
+        validators=[val.validar_cantidad_paquete],
+        help_text="Unidades o metros que trae el paquete/rollo (mayor que 0).",
     )
+
+    # Control de concurrencia optimista (edicion en bloque en Precios).
+    version = models.PositiveIntegerField(default=1)
 
     class Meta:
         verbose_name = "Insumo"
         verbose_name_plural = "Insumos"
         unique_together = ("empresa", "codigo")
         ordering = ["codigo"]
+        constraints = [
+            _rango("insumo_precio_rango", "precio_paquete", 0, val.PRECIO_MAX),
+            models.CheckConstraint(
+                condition=Q(cantidad_paquete__gte=val.CANTIDAD_PAQUETE_MIN),
+                name="insumo_cantidad_paquete_positiva",
+            ),
+        ]
 
     def __str__(self):
         return self.nombre
@@ -220,13 +368,18 @@ class Insumo(models.Model):
 # ============================================================
 
 
+# A nivel de modulo para poder usarlo en el Meta (CHECK); Cotizacion.Estado
+# es un alias.
+class EstadoCotizacion(models.TextChoices):
+    PENDIENTE = "PENDIENTE", "Pendiente"
+    APROBADA = "APROBADA", "Aprobada"
+    RECHAZADA = "RECHAZADA", "Rechazada"
+
+
 class Cotizacion(models.Model):
     """Cotizacion de ventanas. Es el proceso central del sistema."""
 
-    class Estado(models.TextChoices):
-        PENDIENTE = "PENDIENTE", "Pendiente"
-        APROBADA = "APROBADA", "Aprobada"
-        RECHAZADA = "RECHAZADA", "Rechazada"
+    Estado = EstadoCotizacion
 
     empresa = models.ForeignKey(
         Empresa, on_delete=models.PROTECT, related_name="cotizaciones"
@@ -243,14 +396,29 @@ class Cotizacion(models.Model):
         max_length=20, choices=Estado.choices, default=Estado.PENDIENTE
     )
 
-    direccion_entrega = models.CharField(max_length=100, blank=True)
+    direccion_entrega = models.CharField(
+        max_length=val.DIRECCION_MAX, blank=True, validators=val.validar_direccion
+    )
     requiere_transporte = models.BooleanField(default=False)
     distancia_transporte_km = models.DecimalField(
-        max_digits=8, decimal_places=2, null=True, blank=True
+        max_digits=4,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=val.validar_distancia,
+        help_text="Obligatoria si requiere transporte; vacia si no.",
     )
 
-    comentarios = models.TextField(blank=True)
-    monto_agregado = models.DecimalField(max_digits=12, decimal_places=0, default=0)
+    comentarios = models.TextField(
+        max_length=val.COMENTARIO_MAX, blank=True, validators=val.validar_comentario
+    )
+    monto_agregado = models.DecimalField(
+        max_digits=12,
+        decimal_places=0,
+        default=0,
+        validators=val.validar_monto_agregado,
+        help_text="Solo si hay un comentario que lo explique.",
+    )
 
     # Totales calculados (CLP, sin decimales).
     costo_transporte = models.DecimalField(max_digits=12, decimal_places=0, default=0)
@@ -266,10 +434,58 @@ class Cotizacion(models.Model):
         related_name="cotizaciones_resueltas",
     )
 
+    # Control de concurrencia optimista: cada cambio (editar, aprobar,
+    # rechazar, recalcular) incrementa la version y exige la version que el
+    # usuario tenia en pantalla. Ver core/concurrencia.py.
+    version = models.PositiveIntegerField(default=1)
+    modificada_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="cotizaciones_modificadas",
+        help_text="Ultimo usuario que la edito o resolvio.",
+    )
+    modificada_en = models.DateTimeField(null=True, blank=True)
+
     class Meta:
         verbose_name = "Cotizacion"
         verbose_name_plural = "Cotizaciones"
         ordering = ["-fecha_ingreso"]
+        constraints = [
+            models.CheckConstraint(
+                condition=_largo_opcional(
+                    "direccion_entrega", val.DIRECCION_MIN, val.DIRECCION_MAX
+                ),
+                name="cotizacion_direccion_largo",
+            ),
+            models.CheckConstraint(
+                condition=Q(
+                    requiere_transporte=False, distancia_transporte_km__isnull=True
+                )
+                | Q(
+                    requiere_transporte=True,
+                    distancia_transporte_km__range=(
+                        val.DISTANCIA_MIN,
+                        val.DISTANCIA_MAX,
+                    ),
+                ),
+                name="cotizacion_distancia_segun_transporte",
+            ),
+            models.CheckConstraint(
+                condition=Q(comentarios__length__lte=val.COMENTARIO_MAX),
+                name="cotizacion_comentarios_largo",
+            ),
+            models.CheckConstraint(
+                condition=Q(monto_agregado__range=(0, val.MONTO_AGREGADO_MAX)),
+                name="cotizacion_monto_agregado_rango",
+            ),
+            models.CheckConstraint(
+                condition=Q(monto_agregado=0) | ~Q(comentarios=""),
+                name="cotizacion_monto_agregado_con_comentario",
+            ),
+            _opcion_valida("cotizacion_estado_valido", "estado", EstadoCotizacion),
+        ]
 
     def __str__(self):
         return f"Cotizacion #{self.pk} - {self.cliente}"
@@ -297,9 +513,13 @@ class VentanaCotizada(models.Model):
     tipo = models.CharField(max_length=20, choices=TipoVentana.choices)
     color = models.CharField(max_length=20, choices=ColorAluminio.choices)
     vidrio = models.CharField(max_length=20, choices=TipoVidrio.choices)
-    ancho_mm = models.PositiveIntegerField(help_text="Ancho de la ventana en mm.")
-    alto_mm = models.PositiveIntegerField(help_text="Alto de la ventana en mm.")
-    cantidad = models.PositiveIntegerField(default=1)
+    ancho_mm = models.PositiveIntegerField(
+        help_text="Ancho de la ventana en mm.", validators=val.validar_dimension
+    )
+    alto_mm = models.PositiveIntegerField(
+        help_text="Alto de la ventana en mm.", validators=val.validar_dimension
+    )
+    cantidad = models.PositiveIntegerField(default=1, validators=val.validar_cantidad)
 
     # Calculados por el motor de precios (CLP, sin decimales).
     costo_unitario = models.DecimalField(max_digits=12, decimal_places=0, default=0)
@@ -312,6 +532,20 @@ class VentanaCotizada(models.Model):
     class Meta:
         verbose_name = "Ventana cotizada"
         verbose_name_plural = "Ventanas cotizadas"
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(ancho_mm__range=(val.DIMENSION_MIN, val.DIMENSION_MAX))
+                & Q(alto_mm__range=(val.DIMENSION_MIN, val.DIMENSION_MAX)),
+                name="ventana_dimensiones_rango",
+            ),
+            models.CheckConstraint(
+                condition=Q(cantidad__range=(val.CANTIDAD_MIN, val.CANTIDAD_MAX)),
+                name="ventana_cantidad_rango",
+            ),
+            _opcion_valida("ventana_tipo_valido", "tipo", TipoVentana),
+            _opcion_valida("ventana_color_valido", "color", ColorAluminio),
+            _opcion_valida("ventana_vidrio_valido", "vidrio", TipoVidrio),
+        ]
 
     def __str__(self):
         return f"{self.get_tipo_display()} {self.ancho_mm}x{self.alto_mm}mm"

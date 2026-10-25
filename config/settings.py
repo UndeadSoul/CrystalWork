@@ -4,6 +4,7 @@ Django settings for config project.
 
 from pathlib import Path
 from datetime import timedelta
+from corsheaders.defaults import default_headers
 from dotenv import load_dotenv
 import os
 
@@ -22,10 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "users.auth.JWTEmpresaActivaAuthentication",
     ),
+    # Por defecto solo usuarios de una empresa (el administrador del sistema
+    # no ve datos operativos). Ver core/permissions.py.
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",
+        "core.permissions.EsUsuarioDeEmpresa",
     ],
     "EXCEPTION_HANDLER": "core.exceptions.custom_exception_handler",
 }
@@ -33,6 +36,9 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    # Registra el "último ingreso" del usuario al iniciar sesión (por defecto
+    # SimpleJWT no lo actualiza).
+    "UPDATE_LAST_LOGIN": True,
 }
 
 
@@ -172,6 +178,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",
+    # Zona horaria del navegador para los textos con hora (core/zona.py).
+    "core.zona.ZonaClienteMiddleware",
 ]
 
 
@@ -312,3 +320,5 @@ MAILERS = {
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+# Cabecera con la zona horaria del navegador (core/zona.py).
+CORS_ALLOW_HEADERS = (*default_headers, "x-zona-horaria")

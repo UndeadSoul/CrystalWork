@@ -1,39 +1,43 @@
-from rest_framework import filters, viewsets
+from django.shortcuts import get_object_or_404
+from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
 from core.audit import registrar_cambio
 from core.models import CambioRegistro
+from core.pdf import respuesta_pdf
+from core.permissions import EsUsuarioDeEmpresa
 from core.serializers import CambioRegistroSerializer
 
 from .cutlist import hoja_de_corte
 from .models import Proyecto
-from .serializers import ProyectoListSerializer, ProyectoSerializer
-
-# Campos de estado auditados: nombre de campo -> etiqueta visible.
-ESTADOS_AUDITADOS = {
-    "estado_produccion": "Fabricación",
-    "estado_pago": "Pago",
-}
+from .pagos import anular_pago, registrar_pago
+from .pdf import pdf_hoja_corte, pdf_proyecto
+from .serializers import (
+    AnularPagoSerializer,
+    ProyectoListSerializer,
+    ProyectoSerializer,
+    RegistrarPagoSerializer,
+)
 
 
 class ProyectoViewSet(viewsets.ModelViewSet):
     """Proyectos (cotizaciones aprobadas). No se crean ni borran por API: nacen
-    al aprobar una cotizacion. Solo se consultan y se actualiza su estado."""
+    al aprobar una cotizacion. Se consultan, se actualiza su estado de
+    fabricacion y se registran/anulan pagos (el estado de pago se deriva)."""
 
-    permission_classes = [IsAuthenticated]
-    http_method_names = ["get", "head", "options", "patch", "put"]
+    permission_classes = [EsUsuarioDeEmpresa]
+    http_method_names = ["get", "head", "options", "patch", "put", "post"]
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ["fecha_creacion", "estado_produccion"]
 
     def get_queryset(self):
-        user = self.request.user
-        qs = Proyecto.objects.select_related("cliente", "cotizacion").prefetch_related(
-            "cotizacion__ventanas"
+        qs = (
+            Proyecto.objects.filter(empresa=self.request.user.empresa)
+            .select_related("cliente", "cotizacion")
+            .prefetch_related("cotizacion__ventanas")
         )
-        if not user.is_superuser:
-            qs = qs.filter(empresa=user.empresa)
 
         estado = self.request.query_params.get("estado")
         if estado:
@@ -51,18 +55,23 @@ class ProyectoViewSet(viewsets.ModelViewSet):
             return ProyectoListSerializer
         return ProyectoSerializer
 
+    def create(self, request, *args, **kwargs):
+        # Los proyectos nacen al aprobar una cotizacion (POST solo para pagos).
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
     def perform_update(self, serializer):
-        instance = serializer.instance
-        antes = {campo: getattr(instance, campo) for campo in ESTADOS_AUDITADOS}
-        antes_abono = instance.monto_abonado
+        Estado = Proyecto.EstadoProduccion
+        anterior = serializer.instance.estado_produccion
+        nuevo = serializer.validated_data.get("estado_produccion", anterior)
+        # Cancelar o reactivar un proyecto es decision del jefe.
+        if Estado.CANCELADO in (anterior, nuevo) and anterior != nuevo:
+            if not self.request.user.es_jefe:
+                raise PermissionDenied("Solo el jefe puede cancelar o reactivar un proyecto.")
         proyecto = serializer.save()
-
-        for campo, etiqueta in ESTADOS_AUDITADOS.items():
-            anterior = antes[campo]
-            nuevo = getattr(proyecto, campo)
-            if anterior == nuevo:
-                continue
-            etiqueta_valor = f"get_{campo}_display"
+        if anterior != proyecto.estado_produccion:
+            valor_nuevo = proyecto.get_estado_produccion_display()
+            if proyecto.estado_produccion == Estado.CANCELADO:
+                valor_nuevo = f"{valor_nuevo}: {proyecto.motivo_cancelacion}"
             registrar_cambio(
                 empresa=proyecto.empresa,
                 usuario=self.request.user,
@@ -70,30 +79,62 @@ class ProyectoViewSet(viewsets.ModelViewSet):
                 objeto_tipo="proyecto",
                 objeto_id=proyecto.pk,
                 objeto_label=f"Proyecto #{proyecto.pk}",
-                campo=etiqueta,
-                valor_anterior=dict(
-                    proyecto._meta.get_field(campo).choices
-                ).get(anterior, anterior),
-                valor_nuevo=getattr(proyecto, etiqueta_valor)(),
+                campo="Fabricación",
+                valor_anterior=Estado(anterior).label,
+                valor_nuevo=valor_nuevo,
             )
 
-        if antes_abono != proyecto.monto_abonado:
-            registrar_cambio(
-                empresa=proyecto.empresa,
-                usuario=self.request.user,
-                categoria=CambioRegistro.Categoria.PROYECTO,
-                objeto_tipo="proyecto",
-                objeto_id=proyecto.pk,
-                objeto_label=f"Proyecto #{proyecto.pk}",
-                campo="Monto abonado",
-                valor_anterior=int(antes_abono or 0),
-                valor_nuevo=int(proyecto.monto_abonado or 0),
-            )
+    def _detalle(self, proyecto, codigo=status.HTTP_200_OK):
+        proyecto.refresh_from_db()
+        return Response(self.get_serializer(proyecto).data, status=codigo)
+
+    @action(detail=True, methods=["post"])
+    def pagos(self, request, pk=None):
+        """Registra un pago. Responde el proyecto actualizado."""
+        proyecto = self.get_object()
+        s = RegistrarPagoSerializer(data=request.data, context={"proyecto": proyecto})
+        s.is_valid(raise_exception=True)
+        registrar_pago(proyecto, request.user, **s.validated_data)
+        return self._detalle(proyecto, status.HTTP_201_CREATED)
+
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path=r"pagos/(?P<pago_id>\d+)/anular",
+    )
+    def anular_pago(self, request, pk=None, pago_id=None):
+        """Anula un pago (solo el jefe). Responde el proyecto actualizado."""
+        if not request.user.es_jefe:
+            raise PermissionDenied("Solo el jefe puede anular pagos.")
+        proyecto = self.get_object()
+        pago = get_object_or_404(proyecto.pagos, pk=pago_id)
+        s = AnularPagoSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        anular_pago(pago, request.user, s.validated_data["motivo"])
+        return self._detalle(proyecto)
 
     @action(detail=True, methods=["get"], url_path="hoja-corte")
     def hoja_corte(self, request, pk=None):
         proyecto = self.get_object()
         return Response({"piezas": hoja_de_corte(proyecto)})
+
+    @action(detail=True, methods=["get"])
+    def pdf(self, request, pk=None):
+        """Proyecto completo en PDF (estado, cliente, ventanas, hoja de corte
+        y pagos)."""
+        proyecto = self.get_object()
+        return respuesta_pdf(
+            pdf_proyecto(proyecto, request.user), f"proyecto-{proyecto.pk}.pdf"
+        )
+
+    @action(detail=True, methods=["get"], url_path="hoja-corte/pdf")
+    def hoja_corte_pdf(self, request, pk=None):
+        """Solo la hoja de corte en PDF (para el taller)."""
+        proyecto = self.get_object()
+        return respuesta_pdf(
+            pdf_hoja_corte(proyecto, request.user),
+            f"hoja-corte-proyecto-{proyecto.pk}.pdf",
+        )
 
     @action(detail=True, methods=["get"])
     def cambios(self, request, pk=None):

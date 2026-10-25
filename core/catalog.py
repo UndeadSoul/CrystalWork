@@ -9,6 +9,7 @@ largos y precios.
 from decimal import Decimal
 
 from .models import Insumo, PerfilSerie, SerieAluminio
+from .validacion import LARGO_TIRA_ESTANDAR
 
 SERIES_FIJAS = [
     ("L20", "Serie Linea 20"),
@@ -33,12 +34,16 @@ PERFILES_SERIE = [
 # Orden canonico de los perfiles (se respeta en listas y hoja de corte).
 PERFIL_ORDEN = [nombre for nombre, _ in PERFILES_SERIE]
 
+# Pestillos y rodamientos dependen de la linea (L20 / L25): el codigo lleva el
+# sufijo de la serie y core/pricing.py elige el que corresponde al tipo.
 INSUMOS_FIJOS = [
     ("FELPA", "Felpa", "m"),
     ("BURLETE", "Burlete", "m"),
-    ("PESTILLO", "Pestillo", "unidad"),
+    ("PESTILLO_L20", "Pestillo Linea 20", "unidad"),
+    ("PESTILLO_L25", "Pestillo Linea 25", "unidad"),
     ("CARACOL", "Caracol", "unidad"),
-    ("RODAMIENTO", "Rodamiento", "unidad"),
+    ("RODAMIENTO_L20", "Rodamiento Linea 20", "unidad"),
+    ("RODAMIENTO_L25", "Rodamiento Linea 25", "unidad"),
     ("TORNILLO", "Tornillo", "unidad"),
     ("SILICONA", "Silicona", "unidad"),
 ]
@@ -62,7 +67,7 @@ def asegurar_catalogo(empresa):
                 defaults={
                     "orden": indice,
                     "peso_kg": 0,
-                    "largo_tira_m": Decimal("5.8"),
+                    "largo_tira_m": LARGO_TIRA_ESTANDAR,
                     "en_paquete": en_paquete,
                 },
             )

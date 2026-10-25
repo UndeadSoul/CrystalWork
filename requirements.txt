@@ -19,3 +19,4 @@ pyjwt
 pytz
 psycopg2-binary
 python-dotenv
+reportlab==5.1.0

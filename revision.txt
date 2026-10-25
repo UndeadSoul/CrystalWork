@@ -81,3 +81,11 @@ dashboard
 #- procedimiento de linea 42
 #- gestor de perfiles para el jefe
 
+
+- añadir el estado cancelado a los estados de los proyectos, indicando que por alguna razón se abandonó el proyecto
+- mover información de pago abajo de hoja de corte
+- implementar un boton para la exportación a pdf de la cotización y de el proyecto (completo y otra opción para solo la hoja de corte)
+
+- que elementos del dashboard redirijan con filtro aplicado
+- alertas
+

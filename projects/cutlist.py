@@ -29,29 +29,31 @@ def _orden_perfil(nombre):
 
 def hoja_de_corte(proyecto):
     """Filas: [{codigo, tipo_display, color_display, perfil, largo_mm, cantidad}].
-    Agrupadas por ventana (codigo = iniciales cliente + numero de ventana).
-    Largos en milimetros."""
+    Separadas por ventana fisica: una linea de la cotizacion con cantidad N
+    genera N ventanas, cada una con su codigo (iniciales cliente + numero
+    correlativo) y sus piezas. Largos en milimetros."""
     iniciales = _iniciales(proyecto.cliente.nombre)
     filas = []
+    numero = 0
 
-    ventanas = list(proyecto.cotizacion.ventanas.all())
-    for indice, ventana in enumerate(ventanas, start=1):
-        codigo = f"{iniciales}{indice}"
+    for ventana in proyecto.cotizacion.ventanas.order_by("pk"):
         overrides = OVERRIDES_PERFIL.get(ventana.tipo, {})
         perfiles = calc_windtype_profiles(
             ventana.tipo, ventana.ancho_mm, ventana.alto_mm
         )
         perfiles.sort(key=lambda p: _orden_perfil(p["name"]))
-        for p in perfiles:
-            nombre = overrides.get(p["name"], p["name"])
-            filas.append(
-                {
-                    "codigo": codigo,
-                    "tipo_display": TIPO_LABELS.get(ventana.tipo, ventana.tipo),
-                    "color_display": COLOR_LABELS.get(ventana.color, ventana.color),
-                    "perfil": nombre,
-                    "largo_mm": round(float(p["length"]) * 1000),
-                    "cantidad": p["cant"] * ventana.cantidad,
-                }
-            )
+        for _ in range(ventana.cantidad):
+            numero += 1
+            codigo = f"{iniciales}{numero}"
+            for p in perfiles:
+                filas.append(
+                    {
+                        "codigo": codigo,
+                        "tipo_display": TIPO_LABELS.get(ventana.tipo, ventana.tipo),
+                        "color_display": COLOR_LABELS.get(ventana.color, ventana.color),
+                        "perfil": overrides.get(p["name"], p["name"]),
+                        "largo_mm": round(float(p["length"]) * 1000),
+                        "cantidad": p["cant"],
+                    }
+                )
     return filas

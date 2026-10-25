@@ -1,9 +1,8 @@
 from collections import defaultdict
-from datetime import date, timedelta
+from datetime import timedelta
 
 from django.db.models import Count, Sum
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.permissions import IsAuthenticated
+from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -14,6 +13,7 @@ from core.models import (
     TipoVentana,
     VentanaCotizada,
 )
+from core.permissions import EsJefe, EsUsuarioDeEmpresa
 from core.pricing import desglose_iva
 from projects.models import Proyecto
 
@@ -43,7 +43,7 @@ def _choices_breakdown(qs, campo, choices):
 
 def _ultimos_meses(n):
     """(anio, mes) de los ultimos n meses, del mas antiguo al actual."""
-    hoy = date.today()
+    hoy = timezone.localdate()
     out = []
     y, mnum = hoy.year, hoy.month
     for _ in range(n):
@@ -57,7 +57,7 @@ def _ultimos_meses(n):
 
 def _ultimos_trimestres(n):
     """(anio, trimestre) de los ultimos n trimestres, del mas antiguo al actual."""
-    hoy = date.today()
+    hoy = timezone.localdate()
     out = []
     y, q = hoy.year, (hoy.month - 1) // 3 + 1
     for _ in range(n):
@@ -71,12 +71,16 @@ def _ultimos_trimestres(n):
 
 def serie_ingresos(rango, filas):
     """Serie [{label, total(bruto)}] agrupada segun el rango de tiempo.
-    `filas` son dicts con cotizacion__total y fecha_creacion."""
-    hoy = date.today()
+    `filas` son dicts con cotizacion__total y fecha_creacion.
+
+    Fechas en la zona horaria del sistema (settings.TIME_ZONE, Chile): las
+    guardadas estan en UTC y d.date() daria el dia UTC (un proyecto de las
+    22:00 se contaria al dia/mes siguiente)."""
+    hoy = timezone.localdate()
 
     def fecha(f):
         d = f["fecha_creacion"]
-        return d.date() if d is not None else None
+        return timezone.localtime(d).date() if d is not None else None
 
     if rango == "semana":
         dias = [hoy - timedelta(days=i) for i in range(6, -1, -1)]
@@ -151,33 +155,32 @@ def serie_ingresos(rango, filas):
 
 
 def _proyectos_empresa(user):
-    qs = Proyecto.objects.all()
-    if not user.is_superuser:
-        qs = qs.filter(empresa=user.empresa)
-    return qs
+    """Proyectos que cuentan como ingreso (los cancelados no)."""
+    return Proyecto.objects.filter(empresa=user.empresa).exclude(
+        estado_produccion=Proyecto.EstadoProduccion.CANCELADO
+    )
 
 
 class ResumenView(APIView):
     """Metricas agregadas para el dashboard, aisladas por empresa."""
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [EsUsuarioDeEmpresa]
 
     def get(self, request):
         user = request.user
-        ver_finanzas = bool(user.is_superuser or user.es_jefe)
+        ver_finanzas = user.es_jefe
+        empresa = user.empresa
 
-        cotizaciones = Cotizacion.objects.all()
-        proyectos = Proyecto.objects.all()
-        clientes = Cliente.objects.all()
+        cotizaciones = Cotizacion.objects.filter(empresa=empresa)
+        proyectos = Proyecto.objects.filter(empresa=empresa)
+        clientes = Cliente.objects.filter(empresa=empresa)
         ventanas = VentanaCotizada.objects.filter(
-            cotizacion__estado=Cotizacion.Estado.APROBADA
+            cotizacion__estado=Cotizacion.Estado.APROBADA,
+            cotizacion__empresa=empresa,
+        ).exclude(
+            # Proyectos cancelados: sus ventanas no se fabrican.
+            cotizacion__proyecto__estado_produccion=Proyecto.EstadoProduccion.CANCELADO
         )
-
-        if not user.is_superuser:
-            cotizaciones = cotizaciones.filter(empresa=user.empresa)
-            proyectos = proyectos.filter(empresa=user.empresa)
-            clientes = clientes.filter(empresa=user.empresa)
-            ventanas = ventanas.filter(cotizacion__empresa=user.empresa)
 
         # --- KPIs ---
         pendientes = cotizaciones.filter(
@@ -190,8 +193,10 @@ class ResumenView(APIView):
             ]
         ).count()
         # Montos en BRUTO (neto + IVA), por proyecto para cuadrar con las listas.
+        # Los proyectos cancelados no se facturan ni quedan por cobrar.
         filas = list(
-            proyectos.values("cotizacion__total", "estado_pago", "monto_abonado")
+            proyectos.exclude(estado_produccion=Proyecto.EstadoProduccion.CANCELADO)
+            .values("cotizacion__total", "estado_pago", "monto_abonado")
         )
         facturado = sum(_bruto(f["cotizacion__total"]) for f in filas)
         # "Por cobrar" = bruto adeudado menos abonos, de los proyectos no pagados.
@@ -256,17 +261,15 @@ def _ventanas_agrupadas(ventanas, campo, choices_cls):
 
 class IngresosView(APIView):
     """Series de ingresos (bruto) para TODOS los rangos, en una sola llamada,
-    para que el front cambie de rango sin recargar. Solo jefe/admin."""
+    para que el front cambie de rango sin recargar. Solo el jefe."""
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [EsJefe]
 
     def get(self, request):
-        user = request.user
-        if not (user.is_superuser or user.es_jefe):
-            raise PermissionDenied("Solo el jefe puede ver los ingresos.")
-
         filas = list(
-            _proyectos_empresa(user).values("cotizacion__total", "fecha_creacion")
+            _proyectos_empresa(request.user).values(
+                "cotizacion__total", "fecha_creacion"
+            )
         )
         series = {r: serie_ingresos(r, filas) for r in RANGOS_ORDEN}
         return Response({"series": series})

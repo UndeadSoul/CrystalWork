@@ -1,13 +1,16 @@
+from django.db import transaction
 from django.utils import timezone
 from rest_framework import filters, generics, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
-from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .audit import AuditaValoresMixin
 from .catalog import asegurar_catalogo
+from .concurrencia import ControlVersionMixin, tomar_cotizacion, version_esperada
+from .pdf import pdf_cotizacion, respuesta_pdf
+from .permissions import EsJefe, EsUsuarioDeEmpresa
 from .models import (
     CambioRegistro,
     Cliente,
@@ -36,26 +39,14 @@ from .serializers import (
 )
 
 
-class IsJefeOrAdmin(BasePermission):
-    """Solo el jefe o el administrador del sistema."""
-
-    def has_permission(self, request, view):
-        user = request.user
-        return bool(
-            user and user.is_authenticated and (user.is_superuser or user.es_jefe)
-        )
-
-
 class EmpresaScopedViewSet(viewsets.ModelViewSet):
-    """Base: aisla por empresa (el superuser ve todo)."""
+    """Base: aisla por empresa. Solo usuarios de una empresa (el
+    administrador del sistema no ve datos operativos)."""
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [EsUsuarioDeEmpresa]
 
     def filtrar_por_empresa(self, qs):
-        user = self.request.user
-        if user.is_superuser:
-            return qs
-        return qs.filter(empresa=user.empresa)
+        return qs.filter(empresa=self.request.user.empresa)
 
     def _empresa_requerida(self):
         user = self.request.user
@@ -96,47 +87,66 @@ class CotizacionViewSet(EmpresaScopedViewSet):
             return CotizacionListSerializer
         return CotizacionSerializer
 
+    # Crear y editar recrean ventanas y recalculan: todo o nada.
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+
+    @transaction.atomic
     def update(self, request, *args, **kwargs):
+        """Solo pendientes y con la version que el usuario estaba viendo
+        (409 si otro usuario la edito o resolvio entre medio)."""
         cotizacion = self.get_object()
-        if cotizacion.estado != Cotizacion.Estado.PENDIENTE:
-            raise ValidationError(
-                "Solo se pueden editar cotizaciones pendientes (antes de aprobar)."
-            )
+        tomar_cotizacion(cotizacion, version_esperada(request), request.user)
         return super().update(request, *args, **kwargs)
 
-    @action(detail=True, methods=["post"])
-    def recalcular(self, request, pk=None):
-        """Recalcula precios de la cotizacion con el catalogo actual."""
+    @action(detail=True, methods=["get"])
+    def pdf(self, request, pk=None):
+        """Cotizacion en PDF (descarga)."""
         cotizacion = self.get_object()
+        return respuesta_pdf(
+            pdf_cotizacion(cotizacion, request.user), f"cotizacion-{cotizacion.pk}.pdf"
+        )
+
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def recalcular(self, request, pk=None):
+        """Recalcula precios con el catalogo actual. Solo pendientes: una
+        aprobada no cambia (su monto es el del proyecto)."""
+        cotizacion = self.get_object()
+        tomar_cotizacion(cotizacion, version_esperada(request), request.user)
         recalcular_cotizacion(cotizacion)
         serializer = CotizacionSerializer(cotizacion, context={"request": request})
         return Response(serializer.data)
 
     def _resolver(self, request, nuevo_estado):
         user = request.user
-        if not (user.is_superuser or user.es_jefe):
+        if not user.es_jefe:
             raise PermissionDenied("Solo el jefe puede aprobar o rechazar cotizaciones.")
-        cotizacion = self.get_object()
-        if cotizacion.estado != Cotizacion.Estado.PENDIENTE:
-            raise ValidationError("La cotizacion ya fue resuelta.")
-        cotizacion.estado = nuevo_estado
-        cotizacion.fecha_resolucion = timezone.now()
-        cotizacion.resuelta_por = user
-        cotizacion.save(
-            update_fields=["estado", "fecha_resolucion", "resuelta_por"]
-        )
-
-        # Al aprobar, la cotizacion se convierte en un Proyecto (1 a 1).
-        if nuevo_estado == Cotizacion.Estado.APROBADA:
-            from projects.models import Proyecto
-
-            Proyecto.objects.get_or_create(
-                cotizacion=cotizacion,
-                defaults={
-                    "empresa": cotizacion.empresa,
-                    "cliente": cotizacion.cliente,
-                },
+        with transaction.atomic():
+            cotizacion = self.get_object()
+            # El estado cambia en la misma sentencia que verifica la version:
+            # nadie aprueba una version que no vio, ni se resuelve dos veces.
+            tomar_cotizacion(
+                cotizacion,
+                version_esperada(request),
+                user,
+                estado=nuevo_estado,
+                fecha_resolucion=timezone.now(),
+                resuelta_por=user,
             )
+
+            # Al aprobar, la cotizacion se convierte en un Proyecto (1 a 1).
+            if nuevo_estado == Cotizacion.Estado.APROBADA:
+                from projects.models import Proyecto
+
+                Proyecto.objects.get_or_create(
+                    cotizacion=cotizacion,
+                    defaults={
+                        "empresa": cotizacion.empresa,
+                        "cliente": cotizacion.cliente,
+                    },
+                )
 
         serializer = CotizacionSerializer(cotizacion, context={"request": request})
         return Response(serializer.data)
@@ -155,11 +165,11 @@ class CotizacionViewSet(EmpresaScopedViewSet):
 # ============================================================
 
 
-class SerieAluminioViewSet(AuditaValoresMixin, EmpresaScopedViewSet):
+class SerieAluminioViewSet(ControlVersionMixin, AuditaValoresMixin, EmpresaScopedViewSet):
     """Series fijas (L20, L25): solo lectura/edicion, sin alta ni baja."""
 
     serializer_class = SerieAluminioSerializer
-    permission_classes = [IsJefeOrAdmin]
+    permission_classes = [EsJefe]
     http_method_names = ["get", "head", "options", "patch", "put"]
     campos_auditados = {"peso_total_kg": "Peso total (kg)"}
 
@@ -173,9 +183,9 @@ class SerieAluminioViewSet(AuditaValoresMixin, EmpresaScopedViewSet):
         )
 
 
-class PlanchaVidrioViewSet(AuditaValoresMixin, EmpresaScopedViewSet):
+class PlanchaVidrioViewSet(ControlVersionMixin, AuditaValoresMixin, EmpresaScopedViewSet):
     serializer_class = PlanchaVidrioSerializer
-    permission_classes = [IsJefeOrAdmin]
+    permission_classes = [EsJefe]
     campos_auditados = {
         "ancho_plancha_m": "Ancho (m)",
         "alto_plancha_m": "Alto (m)",
@@ -192,11 +202,11 @@ class PlanchaVidrioViewSet(AuditaValoresMixin, EmpresaScopedViewSet):
         serializer.save(empresa=self._empresa_requerida())
 
 
-class InsumoViewSet(AuditaValoresMixin, EmpresaScopedViewSet):
+class InsumoViewSet(ControlVersionMixin, AuditaValoresMixin, EmpresaScopedViewSet):
     """Insumos fijos: solo lectura/edicion, sin alta ni baja."""
 
     serializer_class = InsumoSerializer
-    permission_classes = [IsJefeOrAdmin]
+    permission_classes = [EsJefe]
     http_method_names = ["get", "head", "options", "patch", "put"]
     campos_auditados = {
         "precio_paquete": "Precio paquete",
@@ -211,22 +221,20 @@ class InsumoViewSet(AuditaValoresMixin, EmpresaScopedViewSet):
         return self.filtrar_por_empresa(Insumo.objects.all())
 
 
-class _HijoDeEmpresaViewSet(AuditaValoresMixin, viewsets.ModelViewSet):
+class _HijoDeEmpresaViewSet(ControlVersionMixin, AuditaValoresMixin, viewsets.ModelViewSet):
     """Base para modelos cuyo dueno-empresa es a traves de un padre
     (perfiles y precios dependen de su serie/perfil)."""
 
-    permission_classes = [IsJefeOrAdmin]
+    permission_classes = [EsJefe]
     padre_lookup = None  # p. ej. "serie__empresa"
 
     def audit_empresa(self, instance):
         return instance.serie.empresa
 
     def get_queryset(self):
-        user = self.request.user
-        qs = self.model.objects.all()
-        if user.is_superuser:
-            return qs
-        return qs.filter(**{self.padre_lookup: user.empresa})
+        return self.model.objects.filter(
+            **{self.padre_lookup: self.request.user.empresa}
+        )
 
 
 class PerfilSerieViewSet(_HijoDeEmpresaViewSet):
@@ -252,11 +260,12 @@ class PrecioSerieViewSet(_HijoDeEmpresaViewSet):
         )
 
 
-class EmpresaConfigView(AuditaValoresMixin, generics.RetrieveUpdateAPIView):
+class EmpresaConfigView(ControlVersionMixin, AuditaValoresMixin, generics.RetrieveUpdateAPIView):
     """Lee/actualiza la configuracion de precios de la empresa del usuario."""
 
     serializer_class = EmpresaConfigSerializer
-    permission_classes = [IsJefeOrAdmin]
+    permission_classes = [EsJefe]
+    campo_version = "version_config"
     campos_auditados = {
         "margen_ganancia_pct": "Margen de ganancia (%)",
         "precio_transporte_km": "Precio transporte por km",
@@ -278,22 +287,19 @@ class CambioPrecioListView(generics.ListAPIView):
     """Historial de cambios de precios de la empresa del usuario."""
 
     serializer_class = CambioRegistroSerializer
-    permission_classes = [IsJefeOrAdmin]
+    permission_classes = [EsJefe]
 
     def get_queryset(self):
-        user = self.request.user
-        qs = CambioRegistro.objects.filter(
-            categoria=CambioRegistro.Categoria.PRECIO
+        return CambioRegistro.objects.filter(
+            categoria=CambioRegistro.Categoria.PRECIO,
+            empresa=self.request.user.empresa,
         ).select_related("usuario")
-        if not user.is_superuser:
-            qs = qs.filter(empresa=user.empresa)
-        return qs
 
 
 class OpcionesCotizacionView(APIView):
     """Opciones para poblar los desplegables del formulario de cotizacion."""
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [EsUsuarioDeEmpresa]
 
     def get(self, request):
         def opts(choices):

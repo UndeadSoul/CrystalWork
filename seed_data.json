@@ -424,8 +424,8 @@
   "pk": 3,
   "fields": {
     "empresa": 1,
-    "codigo": "PESTILLO",
-    "nombre": "Pestillo",
+    "codigo": "PESTILLO_L20",
+    "nombre": "Pestillo Linea 20",
     "unidad": "unidad",
     "precio_paquete": "3000",
     "cantidad_paquete": "10.000"
@@ -448,8 +448,8 @@
   "pk": 5,
   "fields": {
     "empresa": 1,
-    "codigo": "RODAMIENTO",
-    "nombre": "Rodamiento",
+    "codigo": "RODAMIENTO_L20",
+    "nombre": "Rodamiento Linea 20",
     "unidad": "unidad",
     "precio_paquete": "4000",
     "cantidad_paquete": "10.000"
@@ -477,6 +477,30 @@
     "unidad": "unidad",
     "precio_paquete": "2500",
     "cantidad_paquete": "1.000"
+  }
+},
+{
+  "model": "core.insumo",
+  "pk": 8,
+  "fields": {
+    "empresa": 1,
+    "codigo": "PESTILLO_L25",
+    "nombre": "Pestillo Linea 25",
+    "unidad": "unidad",
+    "precio_paquete": "3000",
+    "cantidad_paquete": "10.000"
+  }
+},
+{
+  "model": "core.insumo",
+  "pk": 9,
+  "fields": {
+    "empresa": 1,
+    "codigo": "RODAMIENTO_L25",
+    "nombre": "Rodamiento Linea 25",
+    "unidad": "unidad",
+    "precio_paquete": "4000",
+    "cantidad_paquete": "10.000"
   }
 },
 {
@@ -587,8 +611,8 @@
     "tipo": "Linea20lluvia",
     "color": "TITANEO",
     "vidrio": "BRONCE_4",
-    "ancho_mm": 0,
-    "alto_mm": 0,
+    "ancho_mm": 300,
+    "alto_mm": 300,
     "cantidad": 1,
     "costo_unitario": "28092",
     "precio_unitario": "36520",
@@ -604,8 +628,8 @@
     "tipo": "Linea20simple",
     "color": "BRONCE",
     "vidrio": "BRONCE_4",
-    "ancho_mm": 0,
-    "alto_mm": 0,
+    "ancho_mm": 300,
+    "alto_mm": 300,
     "cantidad": 1,
     "costo_unitario": "30291",
     "precio_unitario": "39378",
@@ -621,8 +645,8 @@
     "tipo": "Linea20lluvia",
     "color": "BRONCE",
     "vidrio": "BRONCE_4",
-    "ancho_mm": 0,
-    "alto_mm": 0,
+    "ancho_mm": 300,
+    "alto_mm": 300,
     "cantidad": 1,
     "costo_unitario": "30022",
     "precio_unitario": "39029",
@@ -638,8 +662,8 @@
     "tipo": "Linea25simple",
     "color": "BRONCE",
     "vidrio": "BRONCE_4",
-    "ancho_mm": 0,
-    "alto_mm": 0,
+    "ancho_mm": 300,
+    "alto_mm": 300,
     "cantidad": 1,
     "costo_unitario": "39518",
     "precio_unitario": "51373",
@@ -655,8 +679,8 @@
     "tipo": "Linea25lluvia",
     "color": "BRONCE",
     "vidrio": "BRONCE_4",
-    "ancho_mm": 0,
-    "alto_mm": 0,
+    "ancho_mm": 300,
+    "alto_mm": 300,
     "cantidad": 1,
     "costo_unitario": "39178",
     "precio_unitario": "50931",
@@ -672,8 +696,8 @@
     "tipo": "Linea20simple",
     "color": "TITANEO",
     "vidrio": "INCOLORO_4",
-    "ancho_mm": 0,
-    "alto_mm": 0,
+    "ancho_mm": 300,
+    "alto_mm": 300,
     "cantidad": 1,
     "costo_unitario": "31966",
     "precio_unitario": "41556",
@@ -689,8 +713,8 @@
     "tipo": "Linea25simple",
     "color": "BRONCE",
     "vidrio": "INCOLORO_5",
-    "ancho_mm": 0,
-    "alto_mm": 0,
+    "ancho_mm": 300,
+    "alto_mm": 300,
     "cantidad": 2,
     "costo_unitario": "44313",
     "precio_unitario": "57607",
@@ -1409,7 +1433,7 @@
     "cliente": 6,
     "estado_produccion": "EN_FABRICACION",
     "estado_pago": "PAGADO",
-    "monto_abonado": "276000",
+    "monto_abonado": "328635",
     "fecha_creacion": "2026-10-12T04:10:06.226Z"
   }
 },
@@ -1418,7 +1442,7 @@
   "pk": 1,
   "fields": {
     "nombre": "Ventanas Demo",
-    "rut": "76.123.456-7",
+    "rut": "76.123.456-0",
     "direccion": "Av. Siempreviva 742",
     "telefono": "",
     "email": "",
@@ -1489,6 +1513,38 @@
     "telefono": "",
     "groups": [],
     "user_permissions": []
+  }
+},
+{
+  "model": "projects.pago",
+  "pk": 1,
+  "fields": {
+    "proyecto": 11,
+    "monto": "68000",
+    "fecha": "2026-10-07",
+    "comentario": "Registrado antes del detalle de pagos",
+    "registrado_por": null,
+    "creado_en": "2026-10-08T00:24:00.627Z",
+    "anulado": false,
+    "anulado_por": null,
+    "anulado_en": null,
+    "motivo_anulacion": ""
+  }
+},
+{
+  "model": "projects.pago",
+  "pk": 2,
+  "fields": {
+    "proyecto": 12,
+    "monto": "328635",
+    "fecha": "2026-10-12",
+    "comentario": "Registrado antes del detalle de pagos",
+    "registrado_por": null,
+    "creado_en": "2026-10-12T04:10:06.226Z",
+    "anulado": false,
+    "anulado_por": null,
+    "anulado_en": null,
+    "motivo_anulacion": ""
   }
 }
 ]

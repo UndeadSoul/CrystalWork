@@ -60,20 +60,21 @@ def _clp(value):
 def agregados_usados(tipo, ancho_m, alto_m):
     """[(codigo_insumo, cantidad_usada)] para un tipo de ventana.
 
-    Cantidades de la Linea 20; por ahora se asumen iguales para las demas
-    correderas hasta definir las propias de cada tipo.
+    Las cantidades son las mismas para todas las correderas; pestillos y
+    rodamientos usan el insumo de su linea (p. ej. PESTILLO_L20).
     """
+    serie_codigo = SERIE_POR_TIPO.get(tipo)
+    if not serie_codigo:
+        return []
     felpa = (ancho_m * 6 + alto_m * 6) / 10
-    if tipo in ("Linea20", "Linea25simple", "Linea25lluvia"):
-        return [
-            ("FELPA", felpa),
-            ("PESTILLO", Decimal(2)),
-            ("CARACOL", Decimal(1)),
-            ("RODAMIENTO", Decimal(4)),
-            ("TORNILLO", Decimal(24)),
-            ("SILICONA", Decimal(1)),
-        ]
-    return []
+    return [
+        ("FELPA", felpa),
+        (f"PESTILLO_{serie_codigo}", Decimal(2)),
+        ("CARACOL", Decimal(1)),
+        (f"RODAMIENTO_{serie_codigo}", Decimal(4)),
+        ("TORNILLO", Decimal(24)),
+        ("SILICONA", Decimal(1)),
+    ]
 
 
 def _costo_aluminio(empresa, tipo, color, ancho_mm, alto_mm, faltantes):
