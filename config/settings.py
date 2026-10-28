@@ -5,6 +5,7 @@ Django settings for config project.
 from pathlib import Path
 from datetime import timedelta
 from corsheaders.defaults import default_headers
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 import os
 
@@ -221,19 +222,43 @@ WSGI_APPLICATION = "config.wsgi.application"
 # DATABASE
 # ============================================================
 
-# Por defecto usamos SQLite (desarrollo). Si se definen las variables
-# POSTGRES_* en el entorno, la aplicacion cambia a PostgreSQL sin tocar
-# codigo. SQLite NO es apto para despliegues serverless (p. ej. Vercel).
+# SQLite queda como opción local cuando no se configura PostgreSQL.
+# Si se configura cualquier variable de PostgreSQL, exigimos el resto para
+# evitar que una configuración incompleta use SQLite sin avisar.
+postgres_required = (
+    "POSTGRES_DB",
+    "POSTGRES_USER",
+    "POSTGRES_PASSWORD",
+    "POSTGRES_HOST",
+)
+postgres_configured = any(name in os.environ for name in postgres_required)
 
-if os.environ.get("POSTGRES_DB"):
+if postgres_configured:
+    missing_postgres_settings = [
+        name for name in postgres_required if not os.environ.get(name)
+    ]
+    if missing_postgres_settings:
+        raise ImproperlyConfigured(
+            "Faltan variables para conectar a PostgreSQL: "
+            + ", ".join(missing_postgres_settings)
+        )
+
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
             "NAME": os.environ["POSTGRES_DB"],
-            "USER": os.environ.get("POSTGRES_USER", "postgres"),
-            "PASSWORD": os.environ.get("POSTGRES_PASSWORD", ""),
-            "HOST": os.environ.get("POSTGRES_HOST", "localhost"),
+            "USER": os.environ["POSTGRES_USER"],
+            "PASSWORD": os.environ["POSTGRES_PASSWORD"],
+            "HOST": os.environ["POSTGRES_HOST"],
             "PORT": os.environ.get("POSTGRES_PORT", "5432"),
+            "CONN_MAX_AGE": int(os.environ.get("POSTGRES_CONN_MAX_AGE", "60")),
+            "CONN_HEALTH_CHECKS": True,
+            "OPTIONS": {
+                "connect_timeout": int(
+                    os.environ.get("POSTGRES_CONNECT_TIMEOUT", "10")
+                ),
+                "sslmode": os.environ.get("POSTGRES_SSLMODE", "require"),
+            },
         }
     }
 else:
