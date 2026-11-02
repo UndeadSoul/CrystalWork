@@ -21,8 +21,18 @@ cd CrystalWorkBe
 python -m venv venv
 # Windows:  venv\Scripts\activate     |  Linux/Mac:  source venv/bin/activate
 pip install -r requirements.txt
+
+# Configuración: crea tu .env a partir de la plantilla (el .env NO se versiona)
+copy .env.example .env      # Windows   |   Linux/Mac:  cp .env.example .env
+# genera una SECRET_KEY y pégala en el .env:
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+
 python manage.py migrate
 ```
+
+> En desarrollo, si no creas el `.env`, el proyecto funciona igual con una clave
+> insegura de respaldo. Para producción el `.env` (con `SECRET_KEY` propia y
+> `DEBUG=False`) es **obligatorio**.
 
 ### 2. Datos iniciales — elige UNA opción
 
@@ -95,12 +105,14 @@ VITE_API_URL=http://<host>:<puerto>
 
 ## Configuración por entorno (variables)
 
-En desarrollo funcionan los valores por defecto (SQLite, `DEBUG=True`). Para
-producción, define por variables de entorno (`.env` o el panel del hosting):
+Las variables se definen en `CrystalWorkBe/.env` (lo carga `python-dotenv` al
+iniciar) o en el panel del hosting. La plantilla versionada es
+[.env.example](.env.example): cópiala a `.env` y completa los valores. El `.env`
+**no** se versiona (está en `.gitignore`), así que cada equipo tiene el suyo.
 
 | Variable | Para qué |
 |---|---|
-| `SECRET_KEY` | **Obligatoria en producción.** Sin ella se usa una clave insegura de desarrollo. |
+| `SECRET_KEY` | **Obligatoria en producción.** Sin ella se usa una clave insegura de desarrollo. Generar: `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"`. |
 | `DEBUG` | `False` en producción. |
 | `ALLOWED_HOSTS` | Hosts permitidos, separados por coma. |
 | `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_HOST`, `POSTGRES_PORT` | Cambian la base a PostgreSQL automáticamente. |
