@@ -158,10 +158,14 @@ Puesta en marcha: ver [README.md](../README.md). Resumen: `migrate` → `seed_de
   modificadas** con su versión (`crystalworkfe/src/utils/edicionBloque.js`); si otra persona cambió una fila → 409:
   se muestra su valor vigente con quién/cuándo (del registro de cambios) y se conserva lo escrito en las demás.
 - Clientes: el último que guarda gana (decisión: no se controla).
-- **Tests automatizados** (`python manage.py test`, 37): [users/tests.py](../users/tests.py) (aislamiento entre 2
-  empresas, admin sin datos operativos, permisos por rol, desactivación), [core/tests.py](../core/tests.py)
-  (concurrencia en cotizaciones y precios) y [projects/tests.py](../projects/tests.py) (pagos). Faltan: pricing,
-  hoja de corte, validaciones.
+- **Tests automatizados** (`python manage.py test`, 71): detalle, verificaciones manuales y lo que falta cubrir
+  en [PRUEBAS.md](PRUEBAS.md). Resumen: [users/tests.py](../users/tests.py) (aislamiento entre 2 empresas, admin
+  sin datos operativos, permisos por rol, desactivación), [core/tests.py](../core/tests.py) (concurrencia en
+  cotizaciones y precios), [core/test_pricing.py](../core/test_pricing.py) (cálculo de precios con totales
+  verificados a mano), [projects/tests.py](../projects/tests.py) (pagos, cancelación, PDF) y
+  [analytics/tests.py](../analytics/tests.py) (fechas en hora local). Faltan: hoja de corte, validaciones.
+- **Transporte con decimales:** `Cotizacion.recalcular_total()` redondea el costo de transporte a peso. Antes,
+  12,3 km × $999 dejaba el total con centavos y el bruto mostrado al guardar era $1 menor que al recargar.
 
 ## 7. Próximos pasos sugeridos
 
