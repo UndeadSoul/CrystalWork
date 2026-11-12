@@ -151,7 +151,7 @@ class SerieAluminio(models.Model):
     nombre = models.CharField(max_length=100)
     peso_total_kg = models.DecimalField(
         max_digits=8,
-        decimal_places=3,
+        decimal_places=2,
         default=0,
         validators=[val.validar_peso_serie],
         help_text="Peso del paquete (serie completa) en kg. Se usa como "
@@ -200,7 +200,7 @@ class PerfilSerie(models.Model):
     )
     peso_kg = models.DecimalField(
         max_digits=7,
-        decimal_places=3,
+        decimal_places=2,
         validators=[val.validar_peso_perfil],
         help_text="0 = sin configurar. No puede superar el peso total de la serie.",
     )
@@ -228,7 +228,7 @@ class PerfilSerie(models.Model):
                 "perfil_peso_rango",
                 "peso_kg",
                 val.PESO_PERFIL_MIN,
-                val.PESO_SERIE_MAX,
+                val.PESO_PERFIL_MAX,
                 cero=True,
             ),
             _rango(

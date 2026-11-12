@@ -59,7 +59,12 @@ class UsuarioGestionSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "is_active", "last_login", "date_joined"]
         extra_kwargs = {
-            **val.mensajes("username", "telefono"),
+            **val.mensajes("username"),
+            "telefono": {
+                "required": True,
+                "allow_blank": False,
+                "error_messages": val.MENSAJES_DRF["telefono"],
+            },
             "first_name": {
                 "required": True,
                 "allow_blank": False,
@@ -186,7 +191,12 @@ class EmpresaSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "activa", "creada_en", "n_usuarios"]
         extra_kwargs = {
-            **val.mensajes("nombre", "direccion", "telefono"),
+            **val.mensajes("nombre", "direccion"),
+            "telefono": {
+                "required": True,
+                "allow_blank": False,
+                "error_messages": val.MENSAJES_DRF["telefono"],
+            },
             "nombre": {
                 "error_messages": {
                     **val.MENSAJES_DRF["nombre"],

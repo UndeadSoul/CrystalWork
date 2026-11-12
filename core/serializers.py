@@ -33,7 +33,14 @@ class ClienteSerializer(serializers.ModelSerializer):
             "actualizado_en",
         ]
         read_only_fields = ["id", "creado_en", "actualizado_en"]
-        extra_kwargs = val.mensajes("nombre", "rut", "telefono", "direccion")
+        extra_kwargs = {
+            **val.mensajes("nombre", "rut", "direccion"),
+            "telefono": {
+                "required": True,
+                "allow_blank": False,
+                "error_messages": val.MENSAJES_DRF["telefono"],
+            },
+        }
 
     # Los limites y caracteres permitidos vienen de los validators del modelo
     # (core/validacion.py); aqui solo se normaliza y se valida la unicidad.
@@ -390,9 +397,24 @@ class EmpresaConfigSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Empresa
-        fields = ["id", "nombre", "margen_ganancia_pct", "precio_transporte_km", "version"]
+        fields = [
+            "id",
+            "nombre",
+            "margen_ganancia_pct",
+            "precio_transporte_km",
+            "alerta_cotizacion_dias",
+            "alerta_estancado_dias",
+            "alerta_sin_pago_dias",
+            "version",
+        ]
         read_only_fields = ["id", "nombre"]
-        extra_kwargs = val.mensajes("margen_ganancia_pct", "precio_transporte_km")
+        extra_kwargs = val.mensajes(
+            "margen_ganancia_pct",
+            "precio_transporte_km",
+            "alerta_cotizacion_dias",
+            "alerta_estancado_dias",
+            "alerta_sin_pago_dias",
+        )
 
 
 class CambioRegistroSerializer(serializers.ModelSerializer):

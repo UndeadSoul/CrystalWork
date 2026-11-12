@@ -39,11 +39,21 @@ USUARIOS = [
     ("operario", "operario12345", Usuario.Rol.OPERARIO),
 ]
 
-# Peso del paquete (kg) por serie, usado como denominador del costo de aluminio.
-PESO_SERIE = {"L20": Decimal("7.000"), "L25": Decimal("7.500")}
+# Peso del paquete (kg) por serie: suma de los perfiles que van en el paquete
+# (excluye el riel inferior simple). Es el denominador del costo de aluminio.
+PESO_SERIE = {"L20": Decimal("124.99"), "L25": Decimal("124.99")}
 
-# Peso de tira (kg) por perfil (cualquier valor > 0 permite calcular precio).
-PESO_PERFIL = Decimal("0.900")
+# Peso de tira (kg) por perfil (tira de 6 m). Igual para L20 y L25.
+PESO_PERFIL = {
+    "Riel superior": Decimal("19.73"),
+    "Riel Inferior": Decimal("24.12"),
+    "Jamba": Decimal("16.81"),
+    "Cabezal": Decimal("14.47"),
+    "Zocalo": Decimal("16.13"),
+    "Batiente": Decimal("17.10"),
+    "Traslapo": Decimal("16.63"),
+    "Riel inferior simple": Decimal("19.73"),
+}
 
 # Precio del paquete por color (CLP), por serie.
 PRECIO_SERIE = {
@@ -127,13 +137,13 @@ class Command(BaseCommand):
         for serie in SerieAluminio.objects.filter(empresa=empresa):
             # Peso del paquete: solo si está vacío.
             if not serie.peso_total_kg:
-                serie.peso_total_kg = PESO_SERIE.get(serie.codigo, Decimal("7.000"))
+                serie.peso_total_kg = PESO_SERIE.get(serie.codigo, Decimal("124.992"))
                 serie.save(update_fields=["peso_total_kg"])
 
             # Peso de cada perfil: solo si está en 0.
             for perfil in serie.perfiles.all():
                 if not perfil.peso_kg:
-                    perfil.peso_kg = PESO_PERFIL
+                    perfil.peso_kg = PESO_PERFIL.get(perfil.nombre, Decimal("15"))
                     perfil.save(update_fields=["peso_kg"])
 
             # Precio del paquete por color (crea los que falten).

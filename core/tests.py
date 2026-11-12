@@ -247,12 +247,12 @@ class ConcurrenciaPreciosTests(APITestCase):
         perfil = serie.perfiles.first()
         datos = {"serie": serie.id, "nombre": perfil.nombre, "largo_tira_m": "6"}
         self.assertEqual(
-            self.jefe_1.put(f"/api/catalogo/perfiles-serie/{perfil.id}/", {**datos, "peso_kg": "1.2", "version": 1}, format="json").status_code,
+            self.jefe_1.put(f"/api/catalogo/perfiles-serie/{perfil.id}/", {**datos, "peso_kg": "12", "version": 1}, format="json").status_code,
             200,
         )
-        r = self.jefe_2.put(f"/api/catalogo/perfiles-serie/{perfil.id}/", {**datos, "peso_kg": "2", "version": 1}, format="json")
+        r = self.jefe_2.put(f"/api/catalogo/perfiles-serie/{perfil.id}/", {**datos, "peso_kg": "15", "version": 1}, format="json")
         self.assertEqual(r.status_code, 409)
-        r = self.jefe_2.put(f"/api/catalogo/series/{serie.id}/", {"peso_total_kg": "7", "version": serie.version}, format="json")
+        r = self.jefe_2.put(f"/api/catalogo/series/{serie.id}/", {"peso_total_kg": "70", "version": serie.version}, format="json")
         self.assertEqual(r.status_code, 200)
 
     def test_error_de_validacion_no_consume_la_version(self):
