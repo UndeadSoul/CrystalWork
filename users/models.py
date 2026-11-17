@@ -64,6 +64,24 @@ class Empresa(models.Model):
     # (margen y transporte) editada desde Precios -> General.
     version_config = models.PositiveIntegerField(default=1)
 
+    # Umbrales (dias) del sistema de alertas (app alerts). Configurables por el
+    # jefe en Precios -> General. Defaults: 3 / 14 / 7.
+    alerta_cotizacion_dias = models.PositiveSmallIntegerField(
+        default=3,
+        validators=[val.validar_alerta_dias],
+        help_text="Días para avisar de una cotización pendiente.",
+    )
+    alerta_estancado_dias = models.PositiveSmallIntegerField(
+        default=14,
+        validators=[val.validar_alerta_dias],
+        help_text="Días sin cambiar de estado para avisar de un proyecto estancado.",
+    )
+    alerta_sin_pago_dias = models.PositiveSmallIntegerField(
+        default=7,
+        validators=[val.validar_alerta_dias],
+        help_text="Días sin abonos para avisar de un proyecto sin pago.",
+    )
+
     class Meta:
         verbose_name = "Empresa"
         verbose_name_plural = "Empresas"
@@ -107,6 +125,33 @@ class Empresa(models.Model):
                     "telefono", val.TELEFONO_DIGITOS_MIN, val.TELEFONO_MAX
                 ),
                 name="empresa_telefono_largo",
+            ),
+            models.CheckConstraint(
+                condition=Q(
+                    alerta_cotizacion_dias__range=(
+                        val.ALERTA_DIAS_MIN,
+                        val.ALERTA_DIAS_MAX,
+                    )
+                ),
+                name="empresa_alerta_cotizacion_rango",
+            ),
+            models.CheckConstraint(
+                condition=Q(
+                    alerta_estancado_dias__range=(
+                        val.ALERTA_DIAS_MIN,
+                        val.ALERTA_DIAS_MAX,
+                    )
+                ),
+                name="empresa_alerta_estancado_rango",
+            ),
+            models.CheckConstraint(
+                condition=Q(
+                    alerta_sin_pago_dias__range=(
+                        val.ALERTA_DIAS_MIN,
+                        val.ALERTA_DIAS_MAX,
+                    )
+                ),
+                name="empresa_alerta_sin_pago_rango",
             ),
         ]
 

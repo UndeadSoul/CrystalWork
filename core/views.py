@@ -269,6 +269,9 @@ class EmpresaConfigView(ControlVersionMixin, AuditaValoresMixin, generics.Retrie
     campos_auditados = {
         "margen_ganancia_pct": "Margen de ganancia (%)",
         "precio_transporte_km": "Precio transporte por km",
+        "alerta_cotizacion_dias": "Alerta cotización (días)",
+        "alerta_estancado_dias": "Alerta proyecto estancado (días)",
+        "alerta_sin_pago_dias": "Alerta proyecto sin pago (días)",
     }
 
     def audit_objeto(self, instance):

@@ -44,8 +44,8 @@ TELEFONO_DIGITOS_MIN, TELEFONO_DIGITOS_MAX = 8, 12
 PRECIO_MAX = 10_000_000
 MARGEN_MAX = Decimal("200")
 TRANSPORTE_KM_MAX = 50_000
-PESO_SERIE_MIN, PESO_SERIE_MAX = Decimal("0.1"), Decimal("100")  # kg
-PESO_PERFIL_MIN = Decimal("0.001")  # kg; maximo: el peso total de su serie
+PESO_SERIE_MIN, PESO_SERIE_MAX = Decimal("50"), Decimal("200")  # kg (serie completa)
+PESO_PERFIL_MIN, PESO_PERFIL_MAX = Decimal("10"), Decimal("35")  # kg (por perfil/tira)
 LARGO_TIRA_MIN, LARGO_TIRA_MAX = Decimal("1"), Decimal("7")  # m
 LARGO_TIRA_ESTANDAR = Decimal("6")
 PLANCHA_MIN, PLANCHA_MAX = Decimal("0.5"), Decimal("4")  # m
@@ -55,6 +55,9 @@ CANTIDAD_PAQUETE_MIN = Decimal("0.001")
 PAGO_MAX = 10_000_000  # ademas, no puede superar el saldo pendiente
 PAGO_COMENTARIO_MAX = 200
 MOTIVO_ANULACION_MIN = 5
+
+# Alertas: umbrales en dias (app alerts), configurables por empresa.
+ALERTA_DIAS_MIN, ALERTA_DIAS_MAX = 1, 100
 
 # Usuarios y empresas
 USERNAME_MIN, USERNAME_MAX = 3, 30
@@ -189,12 +192,14 @@ validar_precio = Rango(0, PRECIO_MAX, "CLP")
 validar_margen = Rango(0, MARGEN_MAX, "%")
 validar_transporte_km = Rango(0, TRANSPORTE_KM_MAX, "CLP")
 validar_peso_serie = Rango(PESO_SERIE_MIN, PESO_SERIE_MAX, "kg", cero=True)
-validar_peso_perfil = Rango(PESO_PERFIL_MIN, PESO_SERIE_MAX, "kg", cero=True)
+validar_peso_perfil = Rango(PESO_PERFIL_MIN, PESO_PERFIL_MAX, "kg", cero=True)
 validar_largo_tira = Rango(LARGO_TIRA_MIN, LARGO_TIRA_MAX, "m")
 validar_plancha = Rango(PLANCHA_MIN, PLANCHA_MAX, "m")
 
 
 validar_monto_pago = Rango(1, PAGO_MAX, "CLP")
+
+validar_alerta_dias = Rango(ALERTA_DIAS_MIN, ALERTA_DIAS_MAX, "días")
 
 validar_comentario_pago = [
     MaxLengthValidator(
@@ -292,13 +297,17 @@ def _monto(fuera_de_rango):
 
 MENSAJES_DRF.update(
     {
-        "telefono": {"max_length": "Debe tener como máximo {max_length} caracteres."},
+        "telefono": {
+            "max_length": "Debe tener como máximo {max_length} caracteres.",
+            "blank": "El teléfono es obligatorio.",
+            "required": "El teléfono es obligatorio.",
+        },
         "precio": _monto(validar_precio.mensaje),
         "precio_paquete": _monto(validar_precio.mensaje),
         "precio_transporte_km": _monto(validar_transporte_km.mensaje),
         "margen_ganancia_pct": _decimal(2, validar_margen.mensaje),
-        "peso_total_kg": _decimal(3, validar_peso_serie.mensaje),
-        "peso_kg": _decimal(3, validar_peso_perfil.mensaje),
+        "peso_total_kg": _decimal(2, validar_peso_serie.mensaje),
+        "peso_kg": _decimal(2, validar_peso_perfil.mensaje),
         "largo_tira_m": _decimal(3, validar_largo_tira.mensaje),
         "ancho_plancha_m": _decimal(3, validar_plancha.mensaje),
         "alto_plancha_m": _decimal(3, validar_plancha.mensaje),
@@ -311,6 +320,22 @@ MENSAJES_DRF.update(
             "null": "Ingresa la fecha del pago.",
         },
         "comentario": _largo,
+    }
+)
+
+
+_dias = {
+    **_entero,
+    "min_value": validar_alerta_dias.mensaje,
+    "max_value": validar_alerta_dias.mensaje,
+    "max_digits": validar_alerta_dias.mensaje,
+    "max_whole_digits": validar_alerta_dias.mensaje,
+}
+MENSAJES_DRF.update(
+    {
+        "alerta_cotizacion_dias": _dias,
+        "alerta_estancado_dias": _dias,
+        "alerta_sin_pago_dias": _dias,
     }
 )
 

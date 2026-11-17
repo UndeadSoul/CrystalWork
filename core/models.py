@@ -1,3 +1,5 @@
+from decimal import ROUND_HALF_UP, Decimal
+
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
@@ -151,7 +153,7 @@ class SerieAluminio(models.Model):
     nombre = models.CharField(max_length=100)
     peso_total_kg = models.DecimalField(
         max_digits=8,
-        decimal_places=3,
+        decimal_places=2,
         default=0,
         validators=[val.validar_peso_serie],
         help_text="Peso del paquete (serie completa) en kg. Se usa como "
@@ -200,7 +202,7 @@ class PerfilSerie(models.Model):
     )
     peso_kg = models.DecimalField(
         max_digits=7,
-        decimal_places=3,
+        decimal_places=2,
         validators=[val.validar_peso_perfil],
         help_text="0 = sin configurar. No puede superar el peso total de la serie.",
     )
@@ -228,7 +230,7 @@ class PerfilSerie(models.Model):
                 "perfil_peso_rango",
                 "peso_kg",
                 val.PESO_PERFIL_MIN,
-                val.PESO_SERIE_MAX,
+                val.PESO_PERFIL_MAX,
                 cero=True,
             ),
             _rango(
@@ -494,8 +496,13 @@ class Cotizacion(models.Model):
         """total = suma de subtotales de ventanas + monto agregado + transporte."""
         subtotal_ventanas = sum((v.subtotal for v in self.ventanas.all()), 0)
         distancia = self.distancia_transporte_km or 0
+        # La distancia admite decimales (12,3 km): se redondea a peso aqui, igual
+        # que el resto del calculo. Si no, el total queda con centavos en memoria
+        # y el IVA/bruto de la respuesta difiere en $1 del que se ve al recargar.
         self.costo_transporte = (
-            distancia * self.empresa.precio_transporte_km
+            (Decimal(distancia) * self.empresa.precio_transporte_km).quantize(
+                Decimal("1"), rounding=ROUND_HALF_UP
+            )
             if self.requiere_transporte
             else 0
         )

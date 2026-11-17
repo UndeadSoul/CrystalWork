@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
+from django.utils import timezone
 
 from core import validacion as val
 from core.models import Cliente, Cotizacion
@@ -73,6 +74,9 @@ class Proyecto(models.Model):
     # concurrencia, el UPDATE bloquea el proyecto mientras se suma el saldo.
     version = models.PositiveIntegerField(default=1)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+    # Fecha del ultimo cambio de estado_produccion. Se usa para detectar
+    # proyectos estancados (app alerts). Al crear vale la fecha de creacion.
+    estado_actualizado_en = models.DateTimeField(default=timezone.now)
 
     class Meta:
         verbose_name = "Proyecto"

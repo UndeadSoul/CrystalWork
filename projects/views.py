@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
@@ -69,6 +70,8 @@ class ProyectoViewSet(viewsets.ModelViewSet):
                 raise PermissionDenied("Solo el jefe puede cancelar o reactivar un proyecto.")
         proyecto = serializer.save()
         if anterior != proyecto.estado_produccion:
+            proyecto.estado_actualizado_en = timezone.now()
+            proyecto.save(update_fields=["estado_actualizado_en"])
             valor_nuevo = proyecto.get_estado_produccion_display()
             if proyecto.estado_produccion == Estado.CANCELADO:
                 valor_nuevo = f"{valor_nuevo}: {proyecto.motivo_cancelacion}"
