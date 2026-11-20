@@ -1,14 +1,10 @@
 asgiref==3.12.1
 certifi==2026.7.22
 charset-normalizer==3.5.0
-diff-match-patch==20241021
 Django==6.1
-django-import-export==4.4.1
-django-simple-history==3.13.0
 idna==3.18
 requests==2.34.2
 sqlparse==0.5.5
-tablib==3.10.0
 tzdata==2026.3
 urllib3==2.7.0
 

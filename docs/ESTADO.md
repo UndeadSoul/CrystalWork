@@ -59,11 +59,12 @@ Puesta en marcha: ver [README.md](../README.md). Resumen: `migrate` → `seed_de
   - Largos en **mm**; cada ventana **física** lleva un código = iniciales del cliente + nº correlativo
     (ej. `CLA1`): una línea con cantidad 3 genera `CLA1`, `CLA2`, `CLA3`, cada una con sus piezas
     (no se agrupan cortes de ventanas distintas).
-- **Vidrio** ([core/pricing.py](../core/pricing.py) `_costo_vidrio`): **igual para los 4 tipos** (no depende del tipo). Por hoja: ancho `ancho/2 − 0.054`, alto `alto − 0.107`; `m² = anchoV × altoV × 2`; costo `= m² × (precioPlancha/áreaPlancha) × 1.20` (merma). Burlete = `(ancho×2 + alto×4) × precioPaquete/cantidadPaquete`.
+- **Vidrio (solo cristal)** ([core/pricing.py](../core/pricing.py) `_costo_vidrio`): **depende del tipo**. Por hoja: ancho `ancho/2 − a`, alto `alto − b`, con descuentos por tipo (`glass_offsets_m` en windowstypes): L20 `a=0.054` (alto lluvia 0.107 / simple 0.099), L25 `a=0.066` (alto lluvia 0.138 / simple 0.127). `m² = anchoV × altoV × 2`; costo `= m² × (precioPlancha/áreaPlancha) × (1 + merma_vidrio%)`. El **burlete ya no va aquí**: es un agregado.
 - **Agregados** ([core/pricing.py](../core/pricing.py) `agregados_usados`): mismas cantidades para las 4 correderas,
   pero **pestillos y rodamientos dependen de la línea**: insumos `PESTILLO_L20/L25` y
   `RODAMIENTO_L20/L25`, elegidos por la serie del tipo (`SERIE_POR_TIPO`). Se configuran
   en Precios → Insumos. (Migración `core.0010`: el insumo antiguo pasó a L20 y L25 se creó con sus mismos valores.)
+  El **burlete** también es agregado: cantidad = `4×anchoVidrio + 4×altoVidrio` (perímetro de los dos cristales), con las medidas del cristal del tipo.
 - **Fechas** (zona `America/Santiago` = `TIME_ZONE`, `USE_TZ=True`):
   - Las fechas con hora (creación, ingreso, resolución, modificación, cambios, último ingreso) las pone **el
     servidor** (`auto_now_add` / `timezone.now()`) y se guardan en **UTC**.

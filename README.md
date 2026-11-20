@@ -38,12 +38,21 @@ python manage.py migrate
 
 **Opción A — Datos de demo (recomendada para empezar de cero)**
 
-Crea una empresa demo, usuarios y el catálogo completo con precios y planchas.
-Es idempotente (se puede correr varias veces) y no pisa valores ya editados:
+Crea el administrador del sistema, una empresa de prueba (**Aluminios Las
+Vegas**) con su jefe y operario, y el catálogo completo con pesos, tamaños y
+precios de referencia (sin esto no se puede cotizar). Además genera datos de
+ejemplo:
 
 ```bash
-python manage.py seed_demo
+python manage.py seed_demo             # mínimo: 2 clientes con 2 proyectos c/u (para verificar)
+python manage.py seed_demo --extenso   # demo grande: 10 clientes, 4 cotizaciones pendientes y ~80 proyectos con historial
+python manage.py seed_demo --reset      # borra los datos de prueba y recrea desde cero (combinable con --extenso)
 ```
+
+Sin `--reset` es idempotente (se puede correr varias veces y no pisa valores ya
+editados). Con `--reset` limpia los datos de prueba antes de poblar. Usa
+`--extenso` para que el dashboard tenga datos realistas. Toda empresa que cree
+el administrador nace con este mismo catálogo de referencia.
 
 Usuarios que crea:
 
@@ -57,16 +66,16 @@ Usuarios que crea:
 
 **Opción B — Replicar los datos actuales de otra máquina**
 
-En la máquina de origen se genera un respaldo (ya incluido como
-`seed_data.json`, regenerable con el comando de abajo). En la máquina nueva,
-sobre una base recién migrada:
+`seed_data.json` (versionado) es un snapshot de la demo completa —la misma que
+produce `seed_demo --extenso`— con empresa, usuarios, catálogo, clientes,
+cotizaciones y proyectos. En la máquina nueva, sobre una base recién migrada:
 
 ```bash
 python manage.py loaddata seed_data.json
 ```
 
-Esto restaura empresa, usuarios (con sus contraseñas), clientes, catálogo,
-cotizaciones y proyectos tal como estaban.
+Esto restaura todo tal como estaba. Si prefieres regenerar la demo de forma
+reproducible en vez de cargar el snapshot, usa `seed_demo --extenso` (Opción A).
 
 Para regenerar el respaldo en la máquina de origen (UTF‑8):
 
@@ -125,5 +134,6 @@ iniciar) o en el panel del hosting. La plantilla versionada es
 ```bash
 python manage.py createsuperuser        # crear un admin
 python manage.py changepassword <user>  # resetear una contraseña
-python manage.py seed_demo               # asegurar empresa/usuarios/catálogo demo
+python manage.py seed_demo               # empresa/usuarios/catálogo + datos de ejemplo
+python manage.py seed_demo --extenso --reset  # recrear la demo grande desde cero
 ```

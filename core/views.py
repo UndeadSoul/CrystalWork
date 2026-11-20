@@ -268,6 +268,8 @@ class EmpresaConfigView(ControlVersionMixin, AuditaValoresMixin, generics.Retrie
     campo_version = "version_config"
     campos_auditados = {
         "margen_ganancia_pct": "Margen de ganancia (%)",
+        "merma_aluminio_pct": "Merma aluminio (%)",
+        "merma_vidrio_pct": "Merma vidrio (%)",
         "precio_transporte_km": "Precio transporte por km",
         "alerta_cotizacion_dias": "Alerta cotización (días)",
         "alerta_estancado_dias": "Alerta proyecto estancado (días)",

@@ -98,28 +98,28 @@ Observaciones 11:
 
 observacion 12:
 - exportar pdf proyecto no tenga hoja de corte
-3.288+4.020+2.802+2.412+2.688+2.850+2.772
-Riel superior	
-3.288
-6.000
-Riel Inferior	
-4.020
-6.000
-Jamba	
-2.802
-6.000
-Cabezal	
-2.412
-6.000
-Zocalo	
-2.688
-6.000
-Batiente	
-2.850
-6.000
-Traslapo	
-2.772
-6.000
-Riel inferior simple	
-3.288
-6.000
+
+observacion 13:
+- dejar con 2 decimales los tamaños en metros (largos de las tiras de aluminio)
+- implementar calculo correcto para vidrios
+tenemos las planchas: 
+Incoloro 4mm.	 CLP 24,000 
+Incoloro 5mm.	 CLP 28,000 
+Bronce 4mm.	 CLP 38,000 
+Bronce 5mm.	 CLP 48,000 
+las planchas miden 2.5m de ancho y 1.8m de alto 
+para calcular los vidrios de las ventanas:
+linea 20
+ancho = (ancho/2)-54mm
+alto para riel lluvia = alto - 107mm
+alto para riel simple = alto - 99mm
+linea 25
+ancho = (ancho/2)-66mm
+alto para riel lluvia = alto - 138mm
+alto para riel simple = alto - 127mm
+
+
+-uno con un perfil de jefe por defecto (jefe - jefe1234) y los valores de configuración actuales.
+-otro con perfiles de clientes (unos 10), cotizaciones pendientes (4), 
+proyectos (unos 65 correspondientes a entre hace unos 2 meses y 10 meses, todos con estados 
+entregados y pagados completamente. también unos 15 en los ultimos meses) 

@@ -46,16 +46,33 @@ INSUMOS = {
 
 # --- Costos esperados de la ventana base (1000 x 1000 mm) ---
 
-# Vidrio, igual para todos los tipos:
-#   cristal: 2 hojas de (1/2 - 0,054) x (1 - 0,107) = 2 x 0,446 x 0,893 = 0,796556 m2
-#   0,796556 m2 x $10.000 x 1,20 de merma = $9.558,672
-#   burlete: 1 x 2 + 1 x 4 = 6 m x $100 = $600
-VIDRIO = Decimal("10158.672")
+# Vidrio (SOLO cristal; el burlete ahora es un agregado). Cristal = 2 hojas de
+# (ancho/2 - a) x (alto - b), x $10.000/m2 x 1,20 de merma. Descuentos por tipo:
+#   L20 a=0,054 (lluvia b=0,107 -> 0,446x0,893; simple b=0,099 -> 0,446x0,901)
+#   L25 a=0,066 (lluvia b=0,138 -> 0,434x0,862; simple b=0,127 -> 0,434x0,873)
+VIDRIO = {
+    "Linea20lluvia": Decimal("9558.672"),
+    "Linea20simple": Decimal("9644.304"),
+    "Linea25lluvia": Decimal("8978.592"),
+    "Linea25simple": Decimal("9093.168"),
+}
 
-# Agregados: felpa (6 + 6) / 10 = 1,2 m x $100 = 120; 2 pestillos; caracol 300;
-# 4 rodamientos; 24 tornillos x 10 = 240; silicona 2.000.
-AGREGADOS_L20 = 120 + 2 * 500 + 300 + 4 * 200 + 240 + 2000  # 4.460
-AGREGADOS_L25 = 120 + 2 * 9000 + 300 + 4 * 7000 + 240 + 2000  # 48.660
+# Burlete (ahora agregado): (4 x ancho_vidrio + 4 x alto_vidrio) m x $100/m.
+BURLETE = {
+    "Linea20lluvia": Decimal("535.6"),  # (4x0,446 + 4x0,893) = 5,356 m
+    "Linea20simple": Decimal("538.8"),  # (4x0,446 + 4x0,901) = 5,388 m
+    "Linea25lluvia": Decimal("518.4"),  # (4x0,434 + 4x0,862) = 5,184 m
+    "Linea25simple": Decimal("522.8"),  # (4x0,434 + 4x0,873) = 5,228 m
+}
+
+# Agregados SIN burlete: felpa 6 + 6 = 12 m x $100 = 1.200; 2 pestillos;
+# caracol 300; 4 rodamientos; 24 tornillos x 10 = 240; silicona 2.000.
+AGREGADOS_L20 = 1200 + 2 * 500 + 300 + 4 * 200 + 240 + 2000  # 5.540
+AGREGADOS_L25 = 1200 + 2 * 9000 + 300 + 4 * 7000 + 240 + 2000  # 49.740
+
+
+def _agregados_base(tipo):
+    return AGREGADOS_L20 if "20" in tipo else AGREGADOS_L25
 
 # Aluminio (metros de perfil x precio del metro):
 #   Linea20lluvia: rieles 2 x 0,988 + zocalos/cabezales 4 x 0,5 + batientes/traslapos 4 x 0,965
@@ -75,21 +92,46 @@ def redondear(valor):
     return int(Decimal(valor).quantize(Decimal("1"), rounding="ROUND_HALF_UP"))
 
 
+def agregados_esperado(tipo):
+    """Costo de agregados esperado (base + burlete), redondeado a peso."""
+    return redondear(_agregados_base(tipo) + BURLETE[tipo])
+
+
+def costo_total_esperado(tipo):
+    """Costo total (aluminio sin merma + cristal + agregados), a peso."""
+    return redondear(ALUMINIO[tipo] + VIDRIO[tipo] + _agregados_base(tipo) + BURLETE[tipo])
+
+
+def precio_unitario_esperado(tipo, margen=Decimal("1.2")):
+    """Precio unitario esperado = costo total x (1 + margen). Margen 20%."""
+    return redondear(costo_total_esperado(tipo) * margen)
+
+
 class EscenarioPrecios(APITestCase):
     """Empresa con el catalogo completo y valores redondos (ver docstring)."""
 
     @classmethod
     def setUpTestData(cls):
         cls.empresa = Empresa.objects.create(
-            nombre="Empresa Alfa", margen_ganancia_pct=20, precio_transporte_km=1000
+            nombre="Empresa Alfa",
+            margen_ganancia_pct=20,
+            precio_transporte_km=1000,
+            # Aluminio sin merma: los costos esperados de aluminio son la fórmula
+            # base. Vidrio con 20% (el valor histórico fijo que se verifica abajo).
+            merma_aluminio_pct=0,
+            merma_vidrio_pct=20,
         )
         asegurar_catalogo(cls.empresa)
         for codigo, precio in (("L20", 60_000), ("L25", 120_000)):
             serie = SerieAluminio.objects.get(empresa=cls.empresa, codigo=codigo)
-            serie.peso_total_kg = 10
+            # Pesos escalados x10 respecto al calculo a mano: quedan dentro de
+            # los rangos validos (serie 50-200, perfil 10-35) y las razones
+            # peso_perfil/peso_serie (0,1 y 0,2) no cambian, asi que los costos
+            # esperados de aluminio ($1.000/m y $2.000/m) siguen igual.
+            serie.peso_total_kg = 100
             serie.save()
-            serie.perfiles.update(peso_kg=1, largo_tira_m=6)
-            serie.perfiles.filter(nombre="Riel inferior simple").update(peso_kg=2)
+            serie.perfiles.update(peso_kg=10, largo_tira_m=6)
+            serie.perfiles.filter(nombre="Riel inferior simple").update(peso_kg=20)
             PrecioSerie.objects.create(serie=serie, color="MATE", precio=precio)
         for codigo, (precio, cantidad) in INSUMOS.items():
             Insumo.objects.filter(empresa=cls.empresa, codigo=codigo).update(
@@ -118,31 +160,37 @@ class EscenarioPrecios(APITestCase):
 
 class CostoVentanaTests(EscenarioPrecios):
     def test_desglose_de_una_ventana(self):
-        r = self.costo()
+        r = self.costo()  # Linea20lluvia
         self.assertEqual(r["costo_aluminio"], 9836)
-        self.assertEqual(r["costo_vidrio"], 10159)
-        self.assertEqual(r["costo_agregados"], 4460)
-        # El total redondea la suma sin redondear (24.454,672), no la suma de redondeos.
-        self.assertEqual(r["costo_total"], 24455)
+        self.assertEqual(r["costo_vidrio"], redondear(VIDRIO["Linea20lluvia"]))  # 9.559
+        self.assertEqual(r["costo_agregados"], agregados_esperado("Linea20lluvia"))  # 4.906
+        # El total redondea la suma sin redondear (24.301,072), no la suma de redondeos.
+        esperado = 9836 + VIDRIO["Linea20lluvia"] + AGREGADOS_L20 + BURLETE["Linea20lluvia"]
+        self.assertEqual(r["costo_total"], redondear(esperado))  # 24.301
 
     def test_cada_tipo_usa_su_serie_y_sus_perfiles(self):
-        casos = {
-            "Linea20lluvia": ALUMINIO["Linea20lluvia"] + VIDRIO + AGREGADOS_L20,
-            "Linea20simple": ALUMINIO["Linea20simple"] + VIDRIO + AGREGADOS_L20,
-            "Linea25lluvia": ALUMINIO["Linea25lluvia"] + VIDRIO + AGREGADOS_L25,
-        }
-        for tipo, esperado in casos.items():
+        for tipo in ("Linea20lluvia", "Linea20simple", "Linea25lluvia"):
             with self.subTest(tipo=tipo):
+                esperado = (
+                    ALUMINIO[tipo] + VIDRIO[tipo] + _agregados_base(tipo) + BURLETE[tipo]
+                )
                 r = self.costo(tipo)
                 self.assertEqual(r["costo_aluminio"], ALUMINIO[tipo])
                 self.assertEqual(r["costo_total"], redondear(esperado))
+
+    def test_vidrio_depende_del_tipo(self):
+        """El cristal descuenta distinto por línea (ancho) y riel (alto):
+        L20 54mm / L25 66mm; alto lluvia 107/138, simple 99/127."""
+        for tipo in VIDRIO:
+            with self.subTest(tipo=tipo):
+                self.assertEqual(self.costo(tipo)["costo_vidrio"], redondear(VIDRIO[tipo]))
 
     def test_riel_simple_usa_el_perfil_riel_inferior_simple(self):
         """Si se sube el precio del riel inferior simple, solo cambian los tipos
         "riel simple"; los "riel lluvia" usan el Riel Inferior estandar."""
         serie = SerieAluminio.objects.get(empresa=self.empresa, codigo="L20")
-        serie.perfiles.filter(nombre="Riel inferior simple").update(peso_kg=3)
-        # 0,988 m x $1.000 adicional por metro.
+        serie.perfiles.filter(nombre="Riel inferior simple").update(peso_kg=30)
+        # 0,988 m x $1.000 adicional por metro (peso 20 -> 30, +0,1 de la razon).
         self.assertEqual(self.costo("Linea20simple")["costo_aluminio"], 10856 + 988)
         self.assertEqual(self.costo("Linea20lluvia")["costo_aluminio"], 9836)
 
@@ -151,6 +199,20 @@ class CostoVentanaTests(EscenarioPrecios):
         grande = self.costo(ancho=2000, alto=1500)["costo_total"]
         self.assertLess(chica, self.costo()["costo_total"])
         self.assertGreater(grande, self.costo()["costo_total"])
+
+    def test_merma_aluminio_se_aplica_como_factor(self):
+        """La merma de aluminio multiplica el costo por (1 + %/100)."""
+        base = self.costo("Linea20lluvia")["costo_aluminio"]
+        self.empresa.merma_aluminio_pct = 100  # factor 2.0 -> duplica
+        self.empresa.save()
+        self.assertEqual(self.costo("Linea20lluvia")["costo_aluminio"], base * 2)
+
+    def test_merma_vidrio_se_aplica_al_cristal(self):
+        """costo_vidrio es solo el cristal; sin merma de vidrio baja."""
+        con_merma = self.costo()["costo_vidrio"]
+        self.empresa.merma_vidrio_pct = 0
+        self.empresa.save()
+        self.assertLess(self.costo()["costo_vidrio"], con_merma)
 
     def test_iva(self):
         self.assertEqual(desglose_iva(100_000), (100_000, 19_000, 119_000))
@@ -164,25 +226,34 @@ class AgregadosPorLineaTests(EscenarioPrecios):
     Antes las ventanas L20 no cobraban sus agregados."""
 
     def test_l20_cobra_sus_agregados(self):
-        self.assertEqual(self.costo("Linea20simple")["costo_agregados"], AGREGADOS_L20)
-        self.assertEqual(self.costo("Linea20lluvia")["costo_agregados"], AGREGADOS_L20)
+        self.assertEqual(
+            self.costo("Linea20simple")["costo_agregados"], agregados_esperado("Linea20simple")
+        )
+        self.assertEqual(
+            self.costo("Linea20lluvia")["costo_agregados"], agregados_esperado("Linea20lluvia")
+        )
 
     def test_l25_cobra_sus_agregados(self):
-        self.assertEqual(self.costo("Linea25simple")["costo_agregados"], AGREGADOS_L25)
-        self.assertEqual(self.costo("Linea25lluvia")["costo_agregados"], AGREGADOS_L25)
+        self.assertEqual(
+            self.costo("Linea25simple")["costo_agregados"], agregados_esperado("Linea25simple")
+        )
+        self.assertEqual(
+            self.costo("Linea25lluvia")["costo_agregados"], agregados_esperado("Linea25lluvia")
+        )
 
     def test_cada_linea_usa_su_pestillo_y_rodamiento(self):
         codigos = lambda tipo: {c for c, _ in agregados_usados(tipo, Decimal(1), Decimal(1))}  # noqa: E731
-        comunes = {"FELPA", "CARACOL", "TORNILLO", "SILICONA"}
+        comunes = {"FELPA", "CARACOL", "TORNILLO", "SILICONA", "BURLETE"}
         self.assertEqual(codigos("Linea20simple"), comunes | {"PESTILLO_L20", "RODAMIENTO_L20"})
         self.assertEqual(codigos("Linea25lluvia"), comunes | {"PESTILLO_L25", "RODAMIENTO_L25"})
 
     def test_cambiar_un_insumo_de_una_linea_no_afecta_a_la_otra(self):
         Insumo.objects.filter(empresa=self.empresa, codigo="PESTILLO_L25").update(precio_paquete=1)
-        self.assertEqual(self.costo("Linea20lluvia")["costo_agregados"], AGREGADOS_L20)
         self.assertEqual(
-            self.costo("Linea25lluvia")["costo_agregados"], AGREGADOS_L25 - 2 * (9000 - 1)
+            self.costo("Linea20lluvia")["costo_agregados"], agregados_esperado("Linea20lluvia")
         )
+        esperado_l25 = _agregados_base("Linea25lluvia") + BURLETE["Linea25lluvia"] - 2 * (9000 - 1)
+        self.assertEqual(self.costo("Linea25lluvia")["costo_agregados"], redondear(esperado_l25))
 
     def test_sin_linea_definida_no_hay_agregados(self):
         self.assertEqual(agregados_usados("Linea42f", Decimal(1), Decimal(1)), [])
@@ -211,7 +282,9 @@ class DatosFaltantesTests(EscenarioPrecios):
         self.insumo("RODAMIENTO_L20").delete()
         self.assertEqual(self.faltantes(), ["Insumo RODAMIENTO_L20"])
         # El de la otra linea no se pide.
-        self.assertEqual(self.costo("Linea25lluvia")["costo_agregados"], AGREGADOS_L25)
+        self.assertEqual(
+            self.costo("Linea25lluvia")["costo_agregados"], agregados_esperado("Linea25lluvia")
+        )
 
     def test_tipo_sin_serie(self):
         self.assertIn("No hay serie definida para el tipo Linea42f", self.faltantes(tipo="Linea42f"))
@@ -227,7 +300,9 @@ class DatosFaltantesTests(EscenarioPrecios):
         """El 0 significa "sin precio" (se avisara en la fase de alertas): hoy se
         calcula como costo 0, no como dato faltante."""
         Insumo.objects.filter(empresa=self.empresa, codigo="SILICONA").update(precio_paquete=0)
-        self.assertEqual(self.costo()["costo_agregados"], AGREGADOS_L20 - 2000)
+        self.assertEqual(
+            self.costo()["costo_agregados"], agregados_esperado("Linea20lluvia") - 2000
+        )
 
 
 class TotalCotizacionTests(EscenarioPrecios):
@@ -260,12 +335,13 @@ class TotalCotizacionTests(EscenarioPrecios):
     def test_margen_y_cantidad(self):
         cot = self.cotizar([self.ventana(cantidad=3)])
         v = cot["ventanas"][0]
-        # Costo 24.455 + 20% de margen = 29.346; x 3 = 88.038.
-        self.assertEqual(Decimal(v["costo_unitario"]), 24455)
-        self.assertEqual(Decimal(v["precio_unitario"]), 29346)
-        self.assertEqual(Decimal(v["subtotal"]), 88038)
+        costo = costo_total_esperado("Linea20lluvia")  # 24.301
+        precio = precio_unitario_esperado("Linea20lluvia")  # 24.301 x 1,2 = 29.161
+        self.assertEqual(Decimal(v["costo_unitario"]), costo)
+        self.assertEqual(Decimal(v["precio_unitario"]), precio)
+        self.assertEqual(Decimal(v["subtotal"]), precio * 3)
         self.assertTrue(v["precio_calculado"])
-        self.assertEqual(Decimal(cot["total"]), 88038)
+        self.assertEqual(Decimal(cot["total"]), precio * 3)
 
     def test_total_con_transporte_monto_agregado_e_iva(self):
         cot = self.cotizar(
@@ -275,8 +351,8 @@ class TotalCotizacionTests(EscenarioPrecios):
             comentarios="Instalación en altura",
             monto_agregado=15_000,
         )
-        l20 = redondear(redondear(ALUMINIO["Linea20lluvia"] + VIDRIO + AGREGADOS_L20) * Decimal("1.2"))
-        l25 = redondear(redondear(ALUMINIO["Linea25lluvia"] + VIDRIO + AGREGADOS_L25) * Decimal("1.2"))
+        l20 = precio_unitario_esperado("Linea20lluvia")
+        l25 = precio_unitario_esperado("Linea25lluvia")
         transporte = 12_500  # 12,5 km x $1.000
         neto = l20 + 2 * l25 + transporte + 15_000
         self.assertEqual(Decimal(cot["costo_transporte"]), transporte)
@@ -291,7 +367,7 @@ class TotalCotizacionTests(EscenarioPrecios):
         self.empresa.precio_transporte_km = 999
         self.empresa.save()
         cot = self.cotizar([self.ventana()], requiere_transporte=True, distancia_transporte_km="12.3")
-        neto = 29346 + 12288
+        neto = precio_unitario_esperado("Linea20lluvia") + 12288
         self.assertEqual(Decimal(cot["costo_transporte"]), 12288)
         self.assertEqual(Decimal(cot["total"]), neto)
         self.assertEqual((cot["iva"], cot["total_bruto"]), desglose_iva(neto)[1:])
@@ -304,14 +380,14 @@ class TotalCotizacionTests(EscenarioPrecios):
     def test_sin_transporte_no_se_cobra_aunque_haya_distancia(self):
         cot = self.cotizar([self.ventana()], requiere_transporte=False, distancia_transporte_km="40")
         self.assertEqual(Decimal(cot["costo_transporte"]), 0)
-        self.assertEqual(Decimal(cot["total"]), 29346)
+        self.assertEqual(Decimal(cot["total"]), precio_unitario_esperado("Linea20lluvia"))
 
     def test_ventana_sin_precio_no_suma_al_total(self):
         cot = self.cotizar([self.ventana(), self.ventana(color="BRONCE")])
         sin_precio = cot["ventanas"][1]
         self.assertFalse(sin_precio["precio_calculado"])
         self.assertEqual(Decimal(sin_precio["subtotal"]), 0)
-        self.assertEqual(Decimal(cot["total"]), 29346)
+        self.assertEqual(Decimal(cot["total"]), precio_unitario_esperado("Linea20lluvia"))
 
     def test_recalcular_toma_los_precios_actuales(self):
         cot = self.cotizar([self.ventana(color="BRONCE")])
@@ -323,7 +399,7 @@ class TotalCotizacionTests(EscenarioPrecios):
         )
         self.assertEqual(r.status_code, 200)
         self.assertTrue(r.json()["ventanas"][0]["precio_calculado"])
-        self.assertEqual(Decimal(r.json()["total"]), 29346)
+        self.assertEqual(Decimal(r.json()["total"]), precio_unitario_esperado("Linea20lluvia"))
 
 
 class PerfilesPorTipoTests(SimpleTestCase):

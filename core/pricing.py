@@ -1,13 +1,14 @@
 """Motor de calculo de precios de ventanas.
 
-Costo de una ventana = Aluminio + Vidrio (con merma + burlete) + Agregados.
+Costo de una ventana = Aluminio + Vidrio (cristal, con merma) + Agregados
+(felpa, pestillos, caracol, rodamientos, tornillos, silicona y burlete).
 Los PRECIOS viven en el catalogo editable (modelos de core); las CANTIDADES
 y FORMULAS por tipo de ventana viven aqui, en codigo.
 """
 
 from decimal import Decimal, ROUND_HALF_UP
 
-from projects.windowstypes import calc_windtype_profiles
+from projects.windowstypes import calc_windtype_profiles, glass_offsets_m
 
 from . import models as m
 
@@ -49,12 +50,23 @@ OVERRIDES_PERFIL = {
     "Linea25simple": {"Riel Inferior": "Riel inferior simple"},
 }
 
-MERMA_VIDRIO = Decimal("1.20")
+def _factor_merma(pct):
+    """Convierte un % de merma (p. ej. 20) en factor multiplicador (1.20)."""
+    return 1 + (Decimal(pct or 0) / 100)
 
 
 def _clp(value):
     """Redondea a peso chileno (entero)."""
     return Decimal(value).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+
+
+def _crys_dims(tipo, ancho_m, alto_m):
+    """(ancho, alto) en m de UNA hoja de cristal, con los descuentos del tipo.
+    None si el tipo no tiene cristal definido."""
+    off = glass_offsets_m(tipo)
+    if off is None:
+        return None
+    return ancho_m / 2 - off[0], alto_m - off[1]
 
 
 def agregados_usados(tipo, ancho_m, alto_m):
@@ -66,8 +78,8 @@ def agregados_usados(tipo, ancho_m, alto_m):
     serie_codigo = SERIE_POR_TIPO.get(tipo)
     if not serie_codigo:
         return []
-    felpa = (ancho_m * 6 + alto_m * 6) / 10
-    return [
+    felpa = ancho_m * 6 + alto_m * 6
+    agregados = [
         ("FELPA", felpa),
         (f"PESTILLO_{serie_codigo}", Decimal(2)),
         ("CARACOL", Decimal(1)),
@@ -75,6 +87,13 @@ def agregados_usados(tipo, ancho_m, alto_m):
         ("TORNILLO", Decimal(24)),
         ("SILICONA", Decimal(1)),
     ]
+    # Burlete: va por los dos cristales de la ventana. Cantidad (en metros) =
+    # 4 x ancho_vidrio + 4 x alto_vidrio (el perímetro de las dos hojas). Usa las
+    # medidas del cristal (con el descuento del tipo), no las de la ventana.
+    crys = _crys_dims(tipo, ancho_m, alto_m)
+    if crys is not None:
+        agregados.append(("BURLETE", crys[0] * 4 + crys[1] * 4))
+    return agregados
 
 
 def _costo_aluminio(empresa, tipo, color, ancho_mm, alto_mm, faltantes):
@@ -115,31 +134,30 @@ def _costo_aluminio(empresa, tipo, color, ancho_mm, alto_mm, faltantes):
         precio_perfil = precio_serie * (perfil.peso_kg / peso_serie)
         total += precio_perfil * (largo_usado / perfil.largo_tira_m)
 
-    return total
+    # Merma de aluminio configurable por empresa (Precios -> General).
+    return total * _factor_merma(empresa.merma_aluminio_pct)
 
 
-def _costo_vidrio(empresa, vidrio, ancho_m, alto_m, faltantes):
-    total = Decimal(0)
-
+def _costo_vidrio(empresa, tipo, vidrio, ancho_m, alto_m, faltantes):
+    """Costo del cristal (dos hojas). El burlete ya NO va aqui: es un agregado."""
     plancha = m.PlanchaVidrio.objects.filter(
         empresa=empresa, tipo_vidrio=vidrio
     ).first()
     if not plancha:
         faltantes.append(f"Plancha de vidrio {vidrio}")
-    elif plancha.area_m2:
-        crys_w = ancho_m / 2 - Decimal("0.054")
-        crys_h = alto_m - Decimal("0.107")
-        crys_m2 = crys_w * crys_h * 2
-        total += crys_m2 * (plancha.precio / plancha.area_m2) * MERMA_VIDRIO
+        return Decimal(0)
 
-    burlete = m.Insumo.objects.filter(empresa=empresa, codigo="BURLETE").first()
-    if not burlete:
-        faltantes.append("Insumo BURLETE")
-    elif burlete.cantidad_paquete:
-        m_burlete = ancho_m * 2 + alto_m * 4
-        total += m_burlete * (burlete.precio_paquete / burlete.cantidad_paquete)
+    crys = _crys_dims(tipo, ancho_m, alto_m)
+    if not plancha.area_m2 or crys is None:
+        return Decimal(0)
 
-    return total
+    crys_m2 = crys[0] * crys[1] * 2
+    # Merma de vidrio configurable por empresa (Precios -> General).
+    return (
+        crys_m2
+        * (plancha.precio / plancha.area_m2)
+        * _factor_merma(empresa.merma_vidrio_pct)
+    )
 
 
 def _costo_agregados(empresa, tipo, ancho_m, alto_m, faltantes):
@@ -161,7 +179,7 @@ def calcular_costo_ventana(empresa, tipo, color, vidrio, ancho_mm, alto_mm):
     alto_m = Decimal(alto_mm) / 1000
 
     costo_aluminio = _costo_aluminio(empresa, tipo, color, ancho_mm, alto_mm, faltantes)
-    costo_vidrio = _costo_vidrio(empresa, vidrio, ancho_m, alto_m, faltantes)
+    costo_vidrio = _costo_vidrio(empresa, tipo, vidrio, ancho_m, alto_m, faltantes)
     costo_agregados = _costo_agregados(empresa, tipo, ancho_m, alto_m, faltantes)
 
     if faltantes:

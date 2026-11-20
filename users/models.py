@@ -49,19 +49,36 @@ class Empresa(models.Model):
     margen_ganancia_pct = models.DecimalField(
         max_digits=5,
         decimal_places=2,
-        default=0,
+        default=100,
         validators=[val.validar_margen],
         help_text="Porcentaje de ganancia que se suma al costo. Ej: 30 = 30%.",
     )
     precio_transporte_km = models.DecimalField(
         max_digits=10,
         decimal_places=0,
-        default=0,
+        default=1000,
         validators=[val.validar_transporte_km],
         help_text="Precio por kilometro de transporte (CLP).",
     )
+    # Merma (% de pérdida) por material. Se aplica como factor (1 + %/100) al
+    # costo de aluminio y de vidrio respectivamente. Default 20% (el valor que
+    # el vidrio tenía fijo en código antes de ser configurable).
+    merma_aluminio_pct = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=20,
+        validators=[val.validar_merma],
+        help_text="Porcentaje de merma del aluminio. Ej: 20 = 20%.",
+    )
+    merma_vidrio_pct = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=20,
+        validators=[val.validar_merma],
+        help_text="Porcentaje de merma del vidrio. Ej: 20 = 20%.",
+    )
     # Control de concurrencia optimista de la configuracion de precios
-    # (margen y transporte) editada desde Precios -> General.
+    # (margen, transporte y mermas) editada desde Precios -> General.
     version_config = models.PositiveIntegerField(default=1)
 
     # Umbrales (dias) del sistema de alertas (app alerts). Configurables por el
@@ -94,6 +111,14 @@ class Empresa(models.Model):
             models.CheckConstraint(
                 condition=Q(precio_transporte_km__range=(0, val.TRANSPORTE_KM_MAX)),
                 name="empresa_transporte_km_rango",
+            ),
+            models.CheckConstraint(
+                condition=Q(merma_aluminio_pct__range=(0, val.MERMA_MAX)),
+                name="empresa_merma_aluminio_rango",
+            ),
+            models.CheckConstraint(
+                condition=Q(merma_vidrio_pct__range=(0, val.MERMA_MAX)),
+                name="empresa_merma_vidrio_rango",
             ),
             models.CheckConstraint(
                 condition=Q(

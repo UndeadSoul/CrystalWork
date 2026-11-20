@@ -207,7 +207,7 @@ class PerfilSerie(models.Model):
         help_text="0 = sin configurar. No puede superar el peso total de la serie.",
     )
     largo_tira_m = models.DecimalField(
-        max_digits=6, decimal_places=3, validators=[val.validar_largo_tira]
+        max_digits=6, decimal_places=2, validators=[val.validar_largo_tira]
     )
     en_paquete = models.BooleanField(
         default=True,
@@ -283,10 +283,10 @@ class PlanchaVidrio(models.Model):
     )
     tipo_vidrio = models.CharField(max_length=20, choices=TipoVidrio.choices)
     ancho_plancha_m = models.DecimalField(
-        max_digits=5, decimal_places=3, validators=[val.validar_plancha]
+        max_digits=5, decimal_places=2, validators=[val.validar_plancha]
     )
     alto_plancha_m = models.DecimalField(
-        max_digits=5, decimal_places=3, validators=[val.validar_plancha]
+        max_digits=5, decimal_places=2, validators=[val.validar_plancha]
     )
     precio = models.DecimalField(
         max_digits=12,
@@ -340,9 +340,9 @@ class Insumo(models.Model):
     )
     cantidad_paquete = models.DecimalField(
         max_digits=12,
-        decimal_places=3,
+        decimal_places=0,
         validators=[val.validar_cantidad_paquete],
-        help_text="Unidades o metros que trae el paquete/rollo (mayor que 0).",
+        help_text="Unidades o metros que trae el paquete/rollo (entero, al menos 1).",
     )
 
     # Control de concurrencia optimista (edicion en bloque en Precios).

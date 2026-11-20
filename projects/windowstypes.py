@@ -10,6 +10,8 @@
 #   - Riel superior/inferior: ancho - riel.
 #   - Zocalo y Cabezal: ancho / 2.
 
+from decimal import Decimal
+
 # Offsets (en metros) por tipo de ventana.
 #   riel  -> riel sup/inf = ancho - riel
 #   alto  -> batiente/traslapo = alto - alto
@@ -45,3 +47,23 @@ def calc_windtype_profiles(windtype, width, height):
         {"name": "Traslapo", "length": batiente, "cant": 2},
         {"name": "Jamba", "length": jamba, "cant": 2},
     ]
+
+
+# Descuentos del cristal (mm) por tipo de ventana. El cristal de cada hoja mide
+# (ancho_ventana/2 - ancho) x (alto_ventana - alto); la corredera lleva 2 hojas.
+# El ancho depende solo de la linea; el alto, ademas del riel (simple/lluvia).
+_GLASS_OFFSETS_MM = {
+    "Linea20simple": {"ancho": 54, "alto": 99},
+    "Linea20lluvia": {"ancho": 54, "alto": 107},
+    "Linea25simple": {"ancho": 66, "alto": 127},
+    "Linea25lluvia": {"ancho": 66, "alto": 138},
+}
+
+
+def glass_offsets_m(windtype):
+    """(ancho, alto) de descuento del cristal en metros (Decimal), o None si el
+    tipo no tiene cristal definido (p. ej. Linea 42)."""
+    off = _GLASS_OFFSETS_MM.get(windtype)
+    if not off:
+        return None
+    return Decimal(off["ancho"]) / 1000, Decimal(off["alto"]) / 1000
