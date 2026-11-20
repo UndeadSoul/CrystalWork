@@ -401,6 +401,8 @@ class EmpresaConfigSerializer(serializers.ModelSerializer):
             "id",
             "nombre",
             "margen_ganancia_pct",
+            "merma_aluminio_pct",
+            "merma_vidrio_pct",
             "precio_transporte_km",
             "alerta_cotizacion_dias",
             "alerta_estancado_dias",
@@ -410,6 +412,8 @@ class EmpresaConfigSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "nombre"]
         extra_kwargs = val.mensajes(
             "margen_ganancia_pct",
+            "merma_aluminio_pct",
+            "merma_vidrio_pct",
             "precio_transporte_km",
             "alerta_cotizacion_dias",
             "alerta_estancado_dias",

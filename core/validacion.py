@@ -43,13 +43,14 @@ TELEFONO_DIGITOS_MIN, TELEFONO_DIGITOS_MAX = 8, 12
 # (se avisara en la fase de alertas); cualquier otro valor debe estar en rango.
 PRECIO_MAX = 10_000_000
 MARGEN_MAX = Decimal("200")
+MERMA_MAX = Decimal("100")  # % de pérdida/merma (aluminio y vidrio)
 TRANSPORTE_KM_MAX = 50_000
 PESO_SERIE_MIN, PESO_SERIE_MAX = Decimal("50"), Decimal("200")  # kg (serie completa)
 PESO_PERFIL_MIN, PESO_PERFIL_MAX = Decimal("10"), Decimal("35")  # kg (por perfil/tira)
 LARGO_TIRA_MIN, LARGO_TIRA_MAX = Decimal("1"), Decimal("7")  # m
 LARGO_TIRA_ESTANDAR = Decimal("6")
 PLANCHA_MIN, PLANCHA_MAX = Decimal("0.5"), Decimal("4")  # m
-CANTIDAD_PAQUETE_MIN = Decimal("0.001")
+CANTIDAD_PAQUETE_MIN = Decimal("1")
 
 # Pagos de proyectos
 PAGO_MAX = 10_000_000  # ademas, no puede superar el saldo pendiente
@@ -190,6 +191,7 @@ class Rango:
 # Validators del catalogo.
 validar_precio = Rango(0, PRECIO_MAX, "CLP")
 validar_margen = Rango(0, MARGEN_MAX, "%")
+validar_merma = Rango(0, MERMA_MAX, "%")
 validar_transporte_km = Rango(0, TRANSPORTE_KM_MAX, "CLP")
 validar_peso_serie = Rango(PESO_SERIE_MIN, PESO_SERIE_MAX, "kg", cero=True)
 validar_peso_perfil = Rango(PESO_PERFIL_MIN, PESO_PERFIL_MAX, "kg", cero=True)
@@ -214,7 +216,7 @@ validar_comentario_pago = [
 
 def validar_cantidad_paquete(valor):
     if valor is not None and valor < CANTIDAD_PAQUETE_MIN:
-        raise ValidationError("Debe ser mayor que 0.")
+        raise ValidationError("Debe ser al menos 1.")
 
 
 def _validar_largo(minimo, maximo):
@@ -306,12 +308,14 @@ MENSAJES_DRF.update(
         "precio_paquete": _monto(validar_precio.mensaje),
         "precio_transporte_km": _monto(validar_transporte_km.mensaje),
         "margen_ganancia_pct": _decimal(2, validar_margen.mensaje),
+        "merma_aluminio_pct": _decimal(2, validar_merma.mensaje),
+        "merma_vidrio_pct": _decimal(2, validar_merma.mensaje),
         "peso_total_kg": _decimal(2, validar_peso_serie.mensaje),
         "peso_kg": _decimal(2, validar_peso_perfil.mensaje),
-        "largo_tira_m": _decimal(3, validar_largo_tira.mensaje),
-        "ancho_plancha_m": _decimal(3, validar_plancha.mensaje),
-        "alto_plancha_m": _decimal(3, validar_plancha.mensaje),
-        "cantidad_paquete": _decimal(3, "Valor demasiado grande."),
+        "largo_tira_m": _decimal(2, validar_largo_tira.mensaje),
+        "ancho_plancha_m": _decimal(2, validar_plancha.mensaje),
+        "alto_plancha_m": _decimal(2, validar_plancha.mensaje),
+        "cantidad_paquete": {**_monto("Valor demasiado grande."), "min_value": "Debe ser al menos 1."},
         "monto_abonado": {**_monto("Valor demasiado grande."), "min_value": "No puede ser negativo."},
         "monto": {**_monto(validar_monto_pago.mensaje), "required": "Ingresa el monto."},
         "fecha": {

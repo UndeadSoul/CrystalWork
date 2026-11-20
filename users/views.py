@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from core.catalog import asegurar_catalogo
+from core.catalog import poblar_catalogo_defecto
 
 from .auth import empresa_inactiva, error_empresa_inactiva
 from .models import Empresa, Usuario
@@ -128,4 +128,6 @@ class EmpresaViewSet(_ActivableMixin, viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         empresa = serializer.save()
-        asegurar_catalogo(empresa)
+        # Nace con el catalogo poblado con valores de referencia (pesos, tamaños
+        # y precios) para poder cotizar de inmediato; el jefe los edita luego.
+        poblar_catalogo_defecto(empresa)

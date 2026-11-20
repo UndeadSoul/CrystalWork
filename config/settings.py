@@ -56,31 +56,16 @@ DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
 
 
 # ============================================================
-# VERCEL
-# ============================================================
-
-VERCEL = os.environ.get("VERCEL") == "1"
-
-VERCEL_URL = os.environ.get("VERCEL_URL", "")
-VERCEL_PROJECT_PRODUCTION_URL = os.environ.get(
-    "VERCEL_PROJECT_PRODUCTION_URL",
-    ""
-)
-
-
-# ============================================================
 # ALLOWED HOSTS
 # ============================================================
 
-# Hosts básicos para desarrollo local
+# Desarrollo local. En producción se agregan por la variable de entorno
+# ALLOWED_HOSTS (hosts separados por coma).
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
-    "*"
 ]
 
-
-# Hosts adicionales definidos manualmente desde Vercel
 extra_hosts = os.environ.get("ALLOWED_HOSTS", "")
 
 if extra_hosts:
@@ -89,16 +74,6 @@ if extra_hosts:
         for host in extra_hosts.split(",")
         if host.strip()
     )
-
-
-# Vercel proporciona VERCEL_URL con el hostname del deployment actual.
-if VERCEL_URL:
-    ALLOWED_HOSTS.append(VERCEL_URL)
-
-
-# Dominio de producción del proyecto, si está disponible.
-if VERCEL_PROJECT_PRODUCTION_URL:
-    ALLOWED_HOSTS.append(VERCEL_PROJECT_PRODUCTION_URL)
 
 
 # ============================================================
@@ -124,18 +99,6 @@ if extra_csrf_origins:
     )
 
 
-# Vercel Preview / Production
-if VERCEL_URL:
-    CSRF_TRUSTED_ORIGINS.append(
-        f"https://{VERCEL_URL}"
-    )
-
-if VERCEL_PROJECT_PRODUCTION_URL:
-    CSRF_TRUSTED_ORIGINS.append(
-        f"https://{VERCEL_PROJECT_PRODUCTION_URL}"
-    )
-
-
 # ============================================================
 # APPLICATIONS
 # ============================================================
@@ -148,10 +111,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
-    # Third-party
-    "import_export",
-    "simple_history",
 
     # Custom
     "alerts",       #Aplicación para alertas y notificaciones
@@ -222,9 +181,11 @@ WSGI_APPLICATION = "config.wsgi.application"
 # DATABASE
 # ============================================================
 
-# SQLite queda como opción local cuando no se configura PostgreSQL.
-# Si se configura cualquier variable de PostgreSQL, exigimos el resto para
-# evitar que una configuración incompleta use SQLite sin avisar.
+# SQLite queda como opción local cuando no se configura PostgreSQL. Si se
+# configura cualquier variable de PostgreSQL, exigimos el resto para evitar
+# que una configuración incompleta use SQLite sin avisar. En producción se
+# recomienda PostgreSQL (SQLite no es apto para despliegues serverless ni con
+# múltiples procesos).
 postgres_required = (
     "POSTGRES_DB",
     "POSTGRES_USER",
@@ -266,6 +227,23 @@ else:
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
+            # SQLite admite un solo escritor a la vez. Como el front guarda
+            # varias filas en paralelo (edicion en bloque) y runserver es
+            # multihilo, sin esto la segunda escritura falla al instante con
+            # "database is locked". WAL deja leer mientras alguien escribe;
+            # busy_timeout hace que el escritor que llega segundo ESPERE (hasta
+            # 20 s) en vez de fallar; transaction_mode=IMMEDIATE toma el lock de
+            # escritura al abrir la transaccion, evitando el bloqueo al pasar de
+            # lectura a escritura. (Django 5.1+.)
+            "OPTIONS": {
+                "timeout": 20,
+                "transaction_mode": "IMMEDIATE",
+                "init_command": (
+                    "PRAGMA journal_mode=WAL;"
+                    "PRAGMA synchronous=NORMAL;"
+                    "PRAGMA busy_timeout=20000;"
+                ),
+            },
         }
     }
 
@@ -328,16 +306,6 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
-
-# ============================================================
-# EMAIL
-# ============================================================
-
-MAILERS = {
-    "default": {
-        "BACKEND": "django.core.mail.backends.console.EmailBackend",
-    },
-}
 
 # ============================================================
 # CORS
